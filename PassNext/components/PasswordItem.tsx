@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import {
   View,
   Text,
@@ -7,7 +7,10 @@ import {
   Alert,
   Clipboard,
   Platform,
+  Animated,
+  Dimensions,
 } from 'react-native';
+import { PanGestureHandler, State } from 'react-native-gesture-handler';
 import { Password } from '../services/passwordService';
 import { biometricAuthService } from '../services/biometricAuthService';
 
@@ -22,6 +25,10 @@ export const PasswordItem: React.FC<PasswordItemProps> = ({
   onEdit,
   onDelete,
 }) => {
+  const translateX = useRef(new Animated.Value(0)).current;
+  const { width: screenWidth } = Dimensions.get('window');
+  const swipeThreshold = 100;
+
   const formatDate = (date: Date) => {
     return date.toLocaleDateString('en-US', {
       year: 'numeric',
@@ -62,6 +69,38 @@ export const PasswordItem: React.FC<PasswordItemProps> = ({
     }
   };
 
+  const onGestureEvent = Animated.event(
+    [{ nativeEvent: { translationX: translateX } }],
+    { useNativeDriver: true }
+  );
+
+  const onHandlerStateChange = (event: any) => {
+    if (event.nativeEvent.oldState === State.ACTIVE) {
+      const { translationX } = event.nativeEvent;
+      
+      // Determine action based on swipe direction and distance
+      if (translationX > swipeThreshold) {
+        // Swipe right - Edit
+        handleEdit();
+      } else if (translationX < -swipeThreshold) {
+        // Swipe left - Delete
+        handleDelete();
+      }
+
+      // Reset position with animation
+      Animated.spring(translateX, {
+        toValue: 0,
+        useNativeDriver: true,
+        tension: 100,
+        friction: 8,
+      }).start();
+    }
+  };
+
+  const handleEdit = () => {
+    onEdit(password);
+  };
+
   const handleDelete = () => {
     Alert.alert(
       'Delete Password',
@@ -79,65 +118,103 @@ export const PasswordItem: React.FC<PasswordItemProps> = ({
 
   const maskedPassword = password.password.replace(/./g, '●');
 
+  // Calculate background color based on swipe position
+  const getBackgroundColor = () => {
+    return translateX.interpolate({
+      inputRange: [-screenWidth, -swipeThreshold, 0, swipeThreshold, screenWidth],
+      outputRange: ['#FF3B30', '#FF3B30', '#ffffff', '#007AFF', '#007AFF'],
+      extrapolate: 'clamp',
+    });
+  };
+
+  // Calculate action text opacity
+  const getActionOpacity = () => {
+    return translateX.interpolate({
+      inputRange: [-screenWidth, -swipeThreshold, 0, swipeThreshold, screenWidth],
+      outputRange: [1, 1, 0, 1, 1],
+      extrapolate: 'clamp',
+    });
+  };
+
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.service}>{password.service}</Text>
-        <View style={styles.actions}>
-          <TouchableOpacity onPress={() => onEdit(password)} style={styles.actionButton}>
-            <Text style={styles.editButton}>Edit</Text>
-          </TouchableOpacity>
-          <TouchableOpacity onPress={handleDelete} style={styles.actionButton}>
-            <Text style={styles.deleteButton}>Delete</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
+      <PanGestureHandler
+        onGestureEvent={onGestureEvent}
+        onHandlerStateChange={onHandlerStateChange}
+        activeOffsetX={[-10, 10]}
+      >
+        <Animated.View
+          style={[
+            styles.swipeContainer,
+            {
+              transform: [{ translateX }],
+              backgroundColor: getBackgroundColor(),
+            },
+          ]}
+        >
+          {/* Action indicators */}
+          <Animated.View style={[styles.leftAction, { opacity: getActionOpacity() }]}>
+            <Text style={styles.actionText}>DELETE</Text>
+          </Animated.View>
+          
+          <Animated.View style={[styles.rightAction, { opacity: getActionOpacity() }]}>
+            <Text style={styles.actionText}>EDIT</Text>
+          </Animated.View>
 
-      <View style={styles.field}>
-        <Text style={styles.label}>Account:</Text>
-        <TouchableOpacity onPress={() => copyToClipboard(password.account, 'Account')}>
-          <Text style={styles.value}>{password.account}</Text>
-        </TouchableOpacity>
-      </View>
+          {/* Main content */}
+          <View style={styles.content}>
+            <View style={styles.header}>
+              <Text style={styles.service}>{password.service}</Text>
+              <Text style={styles.swipeHint}>← Swipe to delete • Swipe to edit →</Text>
+            </View>
 
-      <View style={styles.field}>
-        <Text style={styles.label}>Password:</Text>
-        <View style={styles.passwordContainer}>
-          <Text style={styles.value}>
-            {maskedPassword}
-          </Text>
-          <TouchableOpacity 
-            onPress={copyPasswordToClipboard}
-            style={styles.copyButton}
-          >
-            <Text style={styles.copyButtonText}>Copy</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
+            <View style={styles.field}>
+              <Text style={styles.label}>Account:</Text>
+              <TouchableOpacity onPress={() => copyToClipboard(password.account, 'Account')}>
+                <Text style={styles.value}>{password.account}</Text>
+              </TouchableOpacity>
+            </View>
 
-      {password.notes && (
-        <View style={styles.field}>
-          <Text style={styles.label}>Notes:</Text>
-          <Text style={styles.notes}>{password.notes}</Text>
-        </View>
-      )}
+            <View style={styles.field}>
+              <Text style={styles.label}>Password:</Text>
+              <View style={styles.passwordContainer}>
+                <Text style={styles.value}>
+                  {maskedPassword}
+                </Text>
+                <TouchableOpacity 
+                  onPress={copyPasswordToClipboard}
+                  style={styles.copyButton}
+                >
+                  <Text style={styles.copyButtonText}>Copy</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
 
-      <View style={styles.footer}>
-        <Text style={styles.date}>Created: {formatDate(password.createdAt)}</Text>
-        {password.updatedAt.getTime() !== password.createdAt.getTime() && (
-          <Text style={styles.date}>Updated: {formatDate(password.updatedAt)}</Text>
-        )}
-      </View>
+            {password.notes && (
+              <View style={styles.field}>
+                <Text style={styles.label}>Notes:</Text>
+                <Text style={styles.notes}>{password.notes}</Text>
+              </View>
+            )}
+
+            <View style={styles.footer}>
+              <Text style={styles.date}>Created: {formatDate(password.createdAt)}</Text>
+              {password.updatedAt.getTime() !== password.createdAt.getTime() && (
+                <Text style={styles.date}>Updated: {formatDate(password.updatedAt)}</Text>
+              )}
+            </View>
+          </View>
+        </Animated.View>
+      </PanGestureHandler>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    padding: 16,
     marginBottom: 12,
+    borderRadius: 12,
+    overflow: 'hidden',
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
@@ -147,33 +224,58 @@ const styles = StyleSheet.create({
     shadowRadius: 3.84,
     elevation: 5,
   },
+  swipeContainer: {
+    position: 'relative',
+    borderRadius: 12,
+    minHeight: 120,
+  },
+  leftAction: {
+    position: 'absolute',
+    left: 16,
+    top: 0,
+    bottom: 0,
+    justifyContent: 'center',
+    alignItems: 'flex-start',
+    zIndex: 1,
+  },
+  rightAction: {
+    position: 'absolute',
+    right: 16,
+    top: 0,
+    bottom: 0,
+    justifyContent: 'center',
+    alignItems: 'flex-end',
+    zIndex: 1,
+  },
+  actionText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '700',
+    textShadowColor: 'rgba(0, 0, 0, 0.3)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
+  },
+  content: {
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    padding: 16,
+    zIndex: 2,
+  },
   header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: 'column',
     marginBottom: 12,
   },
   service: {
     fontSize: 18,
     fontWeight: '600',
     color: '#333',
-    flex: 1,
+    marginBottom: 4,
   },
-  actions: {
-    flexDirection: 'row',
-  },
-  actionButton: {
-    marginLeft: 12,
-  },
-  editButton: {
-    color: '#007AFF',
-    fontSize: 14,
-    fontWeight: '500',
-  },
-  deleteButton: {
-    color: '#FF3B30',
-    fontSize: 14,
-    fontWeight: '500',
+  swipeHint: {
+    fontSize: 10,
+    color: '#999',
+    fontStyle: 'italic',
+    textAlign: 'center',
   },
   field: {
     marginBottom: 8,

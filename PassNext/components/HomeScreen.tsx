@@ -10,6 +10,7 @@ import {
   FlatList,
   RefreshControl,
 } from 'react-native';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { useAuth } from '../contexts/AuthContext';
 import { useBiometricAuth } from '../contexts/BiometricAuthContext';
 import { authService } from '../services/authService';
@@ -142,7 +143,8 @@ export const HomeScreen: React.FC = () => {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <SafeAreaView style={styles.container}>
       <View style={styles.content}>
         <View style={styles.header}>
           <Text style={styles.welcomeText}>Welcome!</Text>
@@ -238,6 +240,7 @@ export const HomeScreen: React.FC = () => {
         userId={user?.uid || ''}
       />
     </SafeAreaView>
+    </GestureHandlerRootView>
   );
 };
 
