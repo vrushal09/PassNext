@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -7,15 +7,76 @@ import {
   Alert,
   SafeAreaView,
   Switch,
+  FlatList,
+  RefreshControl,
 } from 'react-native';
 import { useAuth } from '../contexts/AuthContext';
 import { useBiometricAuth } from '../contexts/BiometricAuthContext';
 import { authService } from '../services/authService';
 import { biometricAuthService } from '../services/biometricAuthService';
+import { passwordService, Password } from '../services/passwordService';
+import { AddPasswordModal } from './AddPasswordModal';
+import { EditPasswordModal } from './EditPasswordModal';
+import { PasswordItem } from './PasswordItem';
 
 export const HomeScreen: React.FC = () => {
   const { user } = useAuth();
   const { isBiometricEnabled, setBiometricEnabled } = useBiometricAuth();
+  
+  // Password management state
+  const [passwords, setPasswords] = useState<Password[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [selectedPassword, setSelectedPassword] = useState<Password | null>(null);
+
+  // Load passwords on component mount
+  useEffect(() => {
+    if (user) {
+      loadPasswords();
+    }
+  }, [user]);
+
+  const loadPasswords = async () => {
+    if (!user) return;
+    
+    setLoading(true);
+    const result = await passwordService.getPasswords(user.uid);
+    
+    if (result.success && result.passwords) {
+      setPasswords(result.passwords);
+    } else {
+      Alert.alert('Error', result.error || 'Failed to load passwords');
+    }
+    setLoading(false);
+  };
+
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    await loadPasswords();
+    setRefreshing(false);
+  };
+
+  const handleEditPassword = (password: Password) => {
+    setSelectedPassword(password);
+    setShowEditModal(true);
+  };
+
+  const handleDeletePassword = async (passwordId: string) => {
+    const result = await passwordService.deletePassword(passwordId);
+    
+    if (result.success) {
+      Alert.alert('Success', 'Password deleted successfully');
+      loadPasswords();
+    } else {
+      Alert.alert('Error', result.error || 'Failed to delete password');
+    }
+  };
+
+  const handlePasswordSuccess = () => {
+    loadPasswords();
+  };
 
   const handleLogout = async () => {
     Alert.alert(
@@ -93,31 +154,63 @@ export const HomeScreen: React.FC = () => {
           </Text>
         </View>
 
-        <View style={styles.main}>
-          <Text style={styles.mainText}>
-            🎉 You're successfully logged in with Firebase Auth!
-          </Text>
-          <Text style={styles.subText}>
-            This is your main app content area.
-          </Text>
+        <View style={styles.passwordSection}>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Saved Passwords</Text>
+            <TouchableOpacity 
+              style={styles.addButton}
+              onPress={() => setShowAddModal(true)}
+            >
+              <Text style={styles.addButtonText}>+ Add</Text>
+            </TouchableOpacity>
+          </View>
 
-          <View style={styles.settingsSection}>
-            <Text style={styles.settingsTitle}>Security Settings</Text>
-            
-            <View style={styles.settingItem}>
-              <View style={styles.settingInfo}>
-                <Text style={styles.settingLabel}>Biometric Authentication</Text>
-                <Text style={styles.settingDescription}>
-                  Use fingerprint or Face ID to quickly access the app
-                </Text>
-              </View>
-              <Switch
-                value={isBiometricEnabled}
-                onValueChange={handleBiometricToggle}
-                trackColor={{ false: '#ccc', true: '#007AFF' }}
-                thumbColor="#fff"
+          <FlatList
+            data={passwords}
+            keyExtractor={(item) => item.id!}
+            renderItem={({ item }) => (
+              <PasswordItem
+                password={item}
+                onEdit={handleEditPassword}
+                onDelete={handleDeletePassword}
               />
+            )}
+            style={styles.passwordList}
+            showsVerticalScrollIndicator={false}
+            refreshControl={
+              <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
+            }
+            ListEmptyComponent={
+              <View style={styles.emptyState}>
+                <Text style={styles.emptyStateText}>
+                  {loading ? 'Loading passwords...' : 'No passwords saved yet'}
+                </Text>
+                {!loading && (
+                  <Text style={styles.emptyStateSubtext}>
+                    Tap the "Add" button to save your first password
+                  </Text>
+                )}
+              </View>
+            }
+          />
+        </View>
+
+        <View style={styles.settingsSection}>
+          <Text style={styles.settingsTitle}>Security Settings</Text>
+          
+          <View style={styles.settingItem}>
+            <View style={styles.settingInfo}>
+              <Text style={styles.settingLabel}>Biometric Authentication</Text>
+              <Text style={styles.settingDescription}>
+                Use fingerprint or Face ID to quickly access the app
+              </Text>
             </View>
+            <Switch
+              value={isBiometricEnabled}
+              onValueChange={handleBiometricToggle}
+              trackColor={{ false: '#ccc', true: '#007AFF' }}
+              thumbColor="#fff"
+            />
           </View>
         </View>
 
@@ -125,6 +218,24 @@ export const HomeScreen: React.FC = () => {
           <Text style={styles.logoutButtonText}>Logout</Text>
         </TouchableOpacity>
       </View>
+
+      {/* Modals */}
+      <AddPasswordModal
+        visible={showAddModal}
+        onClose={() => setShowAddModal(false)}
+        onSuccess={handlePasswordSuccess}
+        userId={user?.uid || ''}
+      />
+
+      <EditPasswordModal
+        visible={showEditModal}
+        onClose={() => {
+          setShowEditModal(false);
+          setSelectedPassword(null);
+        }}
+        onSuccess={handlePasswordSuccess}
+        password={selectedPassword}
+      />
     </SafeAreaView>
   );
 };
@@ -137,11 +248,11 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
     padding: 20,
-    justifyContent: 'space-between',
   },
   header: {
     alignItems: 'center',
-    marginTop: 40,
+    marginTop: 20,
+    marginBottom: 20,
   },
   welcomeText: {
     fontSize: 32,
@@ -159,30 +270,57 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#666',
   },
-  main: {
+  passwordSection: {
+    flex: 1,
+    marginBottom: 20,
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  sectionTitle: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: '#333',
+  },
+  addButton: {
+    backgroundColor: '#007AFF',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+  },
+  addButtonText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  passwordList: {
+    flex: 1,
+  },
+  emptyState: {
     flex: 1,
     justifyContent: 'center',
-    paddingHorizontal: 20,
+    alignItems: 'center',
+    paddingVertical: 40,
   },
-  mainText: {
-    fontSize: 18,
-    textAlign: 'center',
-    color: '#333',
-    marginBottom: 10,
-    lineHeight: 24,
-  },
-  subText: {
+  emptyStateText: {
     fontSize: 16,
-    textAlign: 'center',
     color: '#666',
-    lineHeight: 22,
-    marginBottom: 40,
+    textAlign: 'center',
+    marginBottom: 8,
+  },
+  emptyStateSubtext: {
+    fontSize: 14,
+    color: '#999',
+    textAlign: 'center',
   },
   settingsSection: {
     backgroundColor: '#fff',
     borderRadius: 12,
     padding: 20,
-    marginVertical: 20,
+    marginBottom: 20,
   },
   settingsTitle: {
     fontSize: 18,
@@ -215,7 +353,6 @@ const styles = StyleSheet.create({
     padding: 15,
     borderRadius: 8,
     alignItems: 'center',
-    marginBottom: 20,
   },
   logoutButtonText: {
     color: '#fff',

@@ -9,6 +9,7 @@ This project includes a complete Firebase Authentication setup for React Native 
 ✅ Password Reset
 ✅ Auto-login persistence
 ✅ **Biometric Authentication (Fingerprint/Face ID)**
+✅ **Password Manager with CRUD Operations**
 ✅ Beautiful UI components
 ✅ TypeScript support
 
@@ -18,7 +19,9 @@ This project includes a complete Firebase Authentication setup for React Native 
 2. Select your project (passnest-2c9e6)
 3. Go to **Authentication > Sign-in method**
 4. Enable **Email/Password** authentication
-5. Optionally enable **Phone** authentication for future use
+5. Go to **Firestore Database** and create a database in production mode
+6. Create required indexes (see Firestore Index Setup section below)
+7. Optionally enable **Phone** authentication for future use
 
 ## Installation Notes
 
@@ -37,14 +40,18 @@ If you encounter "window is not defined" or Firebase Analytics errors:
 │   └── BiometricAuthContext.tsx      # Biometric authentication context
 ├── services/
 │   ├── authService.ts                # Authentication service functions
-│   └── biometricAuthService.ts       # Biometric authentication service
+│   ├── biometricAuthService.ts       # Biometric authentication service
+│   └── passwordService.ts            # Password CRUD operations service
 ├── components/
 │   ├── AuthNavigator.tsx             # Navigation between login/signup
 │   ├── LoginScreen.tsx               # Login screen component
 │   ├── SignUpScreen.tsx              # Sign up screen component
-│   ├── HomeScreen.tsx                # Authenticated user screen
+│   ├── HomeScreen.tsx                # Authenticated user screen with password manager
 │   ├── BiometricAuthScreen.tsx       # Biometric authentication screen
-│   └── LoadingScreen.tsx             # Loading component
+│   ├── LoadingScreen.tsx             # Loading component
+│   ├── AddPasswordModal.tsx          # Modal for adding new passwords
+│   ├── EditPasswordModal.tsx         # Modal for editing existing passwords
+│   └── PasswordItem.tsx              # Individual password display component
 └── app/
     ├── _layout.tsx                   # Root layout with auth providers
     └── index.tsx                     # Main app entry point
@@ -62,8 +69,8 @@ npm start
 2. If not authenticated, shows login/signup screens
 3. If authenticated, checks for biometric authentication requirement
 4. If biometric auth is enabled but not completed, shows biometric auth screen
-5. Once all authentication is satisfied, shows the home screen
-6. Users can sign up, sign in, reset password, enable/disable biometric auth, and logout
+5. Once all authentication is satisfied, shows the home screen with password manager
+6. Users can sign up, sign in, reset password, enable/disable biometric auth, manage passwords, and logout
 
 ### Code Examples:
 
@@ -110,6 +117,72 @@ const isAvailable = await biometricAuthService.isAvailable();
 const authTypes = await biometricAuthService.getAvailableTypes();
 ```
 
+#### Manage Passwords:
+```tsx
+import { passwordService } from '../services/passwordService';
+
+// Create a new password
+const result = await passwordService.createPassword(userId, {
+  service: 'Google',
+  account: 'user@gmail.com',
+  password: 'securepassword',
+  notes: 'Personal account'
+});
+
+// Get all passwords for user
+const { passwords } = await passwordService.getPasswords(userId);
+
+// Update a password
+await passwordService.updatePassword(passwordId, {
+  service: 'Google',
+  account: 'user@gmail.com',
+  password: 'newsecurepassword',
+  notes: 'Updated password'
+});
+
+// Delete a password
+await passwordService.deletePassword(passwordId);
+```
+
+## Password Manager
+
+The app now includes a comprehensive password manager with full CRUD operations using Firebase Firestore:
+
+### Features:
+- **Secure Storage**: All passwords are stored in Firebase Firestore with user isolation
+- **CRUD Operations**: Create, Read, Update, and Delete passwords
+- **Rich Data Model**: Store service name, account, password, and optional notes
+- **User-Friendly Interface**: Beautiful modals for adding and editing passwords
+- **Security Features**: 
+  - Passwords are masked by default with show/hide toggle
+  - **Biometric authentication required to view or copy passwords**
+  - Copy to clipboard functionality for easy use
+  - Secure deletion with confirmation
+- **Real-time Updates**: Automatic refresh and synchronization
+- **Timestamps**: Automatic creation and update timestamps
+
+### Data Fields:
+- **Service**: The name of the service/website (e.g., Google, Facebook, GitHub)
+- **Account**: Username or email associated with the account
+- **Password**: The actual password (stored securely)
+- **Notes**: Optional additional information or notes
+
+### How it Works:
+1. **Add Password**: Tap the "Add" button to create a new password entry
+2. **View Passwords**: All passwords are displayed in a scrollable list
+3. **Edit Password**: Tap "Edit" on any password item to modify it
+4. **Delete Password**: Tap "Delete" with confirmation to remove a password
+5. **Copy Data**: Tap on account fields to copy to clipboard, password copying requires biometric authentication
+6. **Show/Hide**: Toggle password visibility with biometric authentication for security
+
+### Security Considerations:
+- All passwords are associated with the authenticated user's UID
+- Users can only access their own passwords
+- **Biometric authentication required to view or copy passwords (if available on device)**
+- **Automatic fallback to direct access if biometric authentication is not available**
+- Biometric authentication adds an extra layer of security
+- Data is stored in Firebase Firestore with built-in security rules
+
 ## Biometric Authentication
 
 The app now includes fingerprint/Face ID authentication for enhanced security:
@@ -142,6 +215,31 @@ To enable phone authentication, you'll need to:
 4. Build with EAS: `npx expo run:android` or `npx expo run:ios`
 
 Phone auth requires native code and cannot run in Expo Go.
+
+## Firestore Index Setup
+
+Your password manager requires a composite index for optimal query performance. Create this index in Firebase Console:
+
+### Required Index:
+1. Go to [Firebase Console](https://console.firebase.google.com) → Your Project → **Firestore Database** → **Indexes** tab
+2. Click **"Create Index"** in the Composite section
+3. Configure the index:
+   - **Collection ID**: `passwords`
+   - **Field 1**: `userId` → **Ascending**
+   - **Field 2**: `createdAt` → **Descending**
+   - **Query scope**: Collection
+4. Click **"Create"** and wait for the index to build (usually 2-5 minutes)
+
+### Alternative Method:
+1. Run your app and try to load passwords
+2. Firebase will show an error with a direct link to create the required index
+3. Click the link and the index will be created automatically
+
+### Verify Index:
+Once created, you should see the index listed as:
+- Collection: `passwords`
+- Fields: `userId ASC, createdAt DESC`
+- Status: `Enabled`
 
 ## Security Notes
 
