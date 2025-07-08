@@ -12,6 +12,7 @@ import {
   Platform,
 } from 'react-native';
 import { passwordService, Password, PasswordInput } from '../services/passwordService';
+import Colors from '../constants/Colors';
 
 interface EditPasswordModalProps {
   visible: boolean;
@@ -157,33 +158,33 @@ export const EditPasswordModal: React.FC<EditPasswordModalProps> = ({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: Colors.surface,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     padding: 16,
-    backgroundColor: '#fff',
+    backgroundColor: Colors.background,
     borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
+    borderBottomColor: Colors.border,
   },
   title: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#333',
+    color: Colors.text.primary,
   },
   cancelButton: {
     fontSize: 16,
-    color: '#007AFF',
+    color: Colors.primary,
   },
   saveButton: {
     fontSize: 16,
-    color: '#007AFF',
+    color: Colors.primary,
     fontWeight: '600',
   },
   disabledButton: {
-    color: '#ccc',
+    color: Colors.button.disabled,
   },
   form: {
     flex: 1,
@@ -195,17 +196,17 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 16,
     fontWeight: '500',
-    color: '#333',
+    color: Colors.text.primary,
     marginBottom: 8,
   },
   input: {
-    backgroundColor: '#fff',
+    backgroundColor: Colors.background,
     borderWidth: 1,
-    borderColor: '#ddd',
+    borderColor: Colors.border,
     borderRadius: 8,
     padding: 12,
     fontSize: 16,
-    color: '#333',
+    color: Colors.text.primary,
   },
   textArea: {
     height: 80,

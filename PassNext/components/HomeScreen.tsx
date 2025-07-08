@@ -21,6 +21,7 @@ import { passwordService, Password } from '../services/passwordService';
 import { AddPasswordModal } from './AddPasswordModal';
 import { EditPasswordModal } from './EditPasswordModal';
 import { PasswordItem } from './PasswordItem';
+import Colors from '../constants/Colors';
 
 export const HomeScreen: React.FC = () => {
   const { user } = useAuth();
@@ -209,18 +210,18 @@ export const HomeScreen: React.FC = () => {
               {/* Search */}
               <View style={styles.searchSection}>
             <View style={styles.searchContainer}>
-              <Ionicons name="search-outline" size={20} color="#9AA0A6" style={styles.searchIcon} />
+              <Ionicons name="search-outline" size={20} color={Colors.text.tertiary} style={styles.searchIcon} />
               <TextInput
                 style={styles.searchInput}
                 placeholder="Search"
-                placeholderTextColor="#9AA0A6"
+                placeholderTextColor={Colors.text.tertiary}
                 value={searchQuery}
                 onChangeText={setSearchQuery}
                 autoCapitalize="none"
                 autoCorrect={false}
               />
               <TouchableOpacity style={styles.searchMenuButton}>
-                <Ionicons name="ellipsis-vertical" size={16} color="#9AA0A6" />
+                <Ionicons name="ellipsis-vertical" size={16} color={Colors.text.tertiary} />
               </TouchableOpacity>
             </View>
           </View>
@@ -229,7 +230,7 @@ export const HomeScreen: React.FC = () => {
           <View style={styles.mostUsedHeader}>
             <Text style={styles.mostUsedTitle}>Most used</Text>
             <TouchableOpacity style={styles.expandButton}>
-              <Ionicons name="chevron-down" size={16} color="#5F6368" />
+              <Ionicons name="chevron-down" size={16} color={Colors.text.secondary} />
             </TouchableOpacity>
           </View>
 
@@ -273,7 +274,7 @@ export const HomeScreen: React.FC = () => {
             style={styles.floatingAddButton}
             onPress={() => setShowAddModal(true)}
           >
-            <Ionicons name="add" size={28} color="#FFFFFF" />
+            <Ionicons name="add" size={28} color={Colors.text.inverse} />
           </TouchableOpacity>
             </>
           )}
@@ -294,7 +295,7 @@ export const HomeScreen: React.FC = () => {
               <View style={styles.securitySection}>
                 <View style={styles.securityItem}>
                   <View style={styles.securityItemIcon}>
-                    <Ionicons name="finger-print" size={24} color="#1A73E8" />
+                    <Ionicons name="finger-print" size={24} color={Colors.primary} />
                   </View>
                   <View style={styles.securityItemContent}>
                     <Text style={styles.securityItemTitle}>Biometric Authentication</Text>
@@ -305,14 +306,14 @@ export const HomeScreen: React.FC = () => {
                   <Switch
                     value={isBiometricEnabled}
                     onValueChange={handleBiometricToggle}
-                    trackColor={{ false: '#E8EAED', true: '#1A73E8' }}
-                    thumbColor={isBiometricEnabled ? '#FFFFFF' : '#5F6368'}
+                    trackColor={{ false: Colors.border, true: Colors.primary }}
+                    thumbColor={isBiometricEnabled ? Colors.text.inverse : Colors.text.secondary}
                   />
                 </View>
 
                 <View style={styles.securityItem}>
                   <View style={styles.securityItemIcon}>
-                    <Ionicons name="shield-checkmark" size={24} color="#34A853" />
+                    <Ionicons name="shield-checkmark" size={24} color={Colors.success} />
                   </View>
                   <View style={styles.securityItemContent}>
                     <Text style={styles.securityItemTitle}>Password Strength</Text>
@@ -324,7 +325,7 @@ export const HomeScreen: React.FC = () => {
 
                 <TouchableOpacity style={[styles.securityItem, styles.lastSecurityItem]} onPress={handleLogout}>
                   <View style={styles.securityItemIcon}>
-                    <Ionicons name="log-out" size={24} color="#FF3B30" />
+                    <Ionicons name="log-out" size={24} color={Colors.error} />
                   </View>
                   <View style={styles.securityItemContent}>
                     <Text style={styles.securityItemTitle}>Sign Out</Text>
@@ -332,7 +333,7 @@ export const HomeScreen: React.FC = () => {
                       Sign out of your account
                     </Text>
                   </View>
-                  <Ionicons name="chevron-forward" size={20} color="#5F6368" />
+                  <Ionicons name="chevron-forward" size={20} color={Colors.text.secondary} />
                 </TouchableOpacity>
               </View>
             </View>
@@ -345,14 +346,14 @@ export const HomeScreen: React.FC = () => {
             style={[styles.navItem, currentTab === 'home' && styles.activeNavItem]}
             onPress={() => handleTabPress('home')}
           >
-            <Ionicons name="apps" size={24} color={currentTab === 'home' ? "#1A73E8" : "#5F6368"} />
+            <Ionicons name="apps" size={24} color={currentTab === 'home' ? Colors.nav.active : Colors.nav.inactive} />
             <Text style={currentTab === 'home' ? styles.activeNavText : styles.navText}>Home</Text>
           </TouchableOpacity>
           <TouchableOpacity 
             style={[styles.navItem, currentTab === 'security' && styles.activeNavItem]}
             onPress={() => handleTabPress('security')}
           >
-            <Ionicons name="shield-checkmark" size={24} color={currentTab === 'security' ? "#1A73E8" : "#5F6368"} />
+            <Ionicons name="shield-checkmark" size={24} color={currentTab === 'security' ? Colors.nav.active : Colors.nav.inactive} />
             <Text style={currentTab === 'security' ? styles.activeNavText : styles.navText}>Security</Text>
           </TouchableOpacity>
         </View>
@@ -383,7 +384,7 @@ export const HomeScreen: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: Colors.background,
     paddingTop: 10,
   },
   content: {
@@ -397,7 +398,7 @@ const styles = StyleSheet.create({
   appTitle: {
     fontSize: 32,
     fontWeight: '500',
-    color: '#1C1C1E',
+    color: Colors.text.primary,
     letterSpacing: -0.8,
   },
   header: {
@@ -415,13 +416,13 @@ const styles = StyleSheet.create({
   googleText: {
     fontSize: 22,
     fontWeight: '400',
-    color: '#5F6368',
+    color: Colors.text.secondary,
     marginRight: 4,
   },
   passText: {
     fontSize: 22,
     fontWeight: '400',
-    color: '#5F6368',
+    color: Colors.text.secondary,
   },
   profileButton: {
     padding: 4,
@@ -430,14 +431,14 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: '#1A73E8',
+    backgroundColor: Colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
   },
   profileInitial: {
     fontSize: 14,
     fontWeight: '500',
-    color: '#FFFFFF',
+    color: Colors.text.inverse,
   },
   searchSection: {
     paddingHorizontal: 20,
@@ -446,12 +447,12 @@ const styles = StyleSheet.create({
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#F8F9FA',
+    backgroundColor: Colors.surface,
     borderRadius: 24,
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderWidth: 1,
-    borderColor: '#E8EAED',
+    borderColor: Colors.border,
   },
   searchIcon: {
     marginRight: 12,
@@ -459,7 +460,7 @@ const styles = StyleSheet.create({
   searchInput: {
     flex: 1,
     fontSize: 16,
-    color: '#3C4043',
+    color: Colors.text.primary,
     fontWeight: '400',
   },
   searchMenuButton: {
@@ -476,7 +477,7 @@ const styles = StyleSheet.create({
   mostUsedTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#3C4043',
+    color: Colors.text.primary,
   },
   expandButton: {
     padding: 4,
@@ -495,28 +496,28 @@ const styles = StyleSheet.create({
   securityTitle: {
     fontSize: 24,
     fontWeight: '600',
-    color: '#3C4043',
+    color: Colors.text.primary,
   },
   securitySection: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: Colors.background,
     marginHorizontal: 16,
     borderRadius: 16,
     padding: 16,
     borderWidth: 1,
-    borderColor: '#E8EAED',
+    borderColor: Colors.border,
   },
   securityItem: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingVertical: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#F8F9FA',
+    borderBottomColor: Colors.surface,
   },
   securityItemIcon: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#F8F9FA',
+    backgroundColor: Colors.surface,
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 16,
@@ -527,12 +528,12 @@ const styles = StyleSheet.create({
   securityItemTitle: {
     fontSize: 16,
     fontWeight: '500',
-    color: '#3C4043',
+    color: Colors.text.primary,
     marginBottom: 2,
   },
   securityItemDescription: {
     fontSize: 14,
-    color: '#5F6368',
+    color: Colors.text.secondary,
     fontWeight: '400',
   },
   lastSecurityItem: {
@@ -555,19 +556,19 @@ const styles = StyleSheet.create({
   },
   emptyStateText: {
     fontSize: 16,
-    color: '#5F6368',
+    color: Colors.text.secondary,
     textAlign: 'center',
     marginBottom: 20,
     fontWeight: '400',
   },
   addFirstButton: {
-    backgroundColor: '#1A73E8',
+    backgroundColor: Colors.primary,
     paddingHorizontal: 24,
     paddingVertical: 12,
     borderRadius: 20,
   },
   addFirstButtonText: {
-    color: '#FFFFFF',
+    color: Colors.text.inverse,
     fontSize: 16,
     fontWeight: '500',
   },
@@ -578,10 +579,10 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: 28,
-    backgroundColor: '#1A73E8',
+    backgroundColor: Colors.primary,
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#000',
+    shadowColor: Colors.shadow,
     shadowOffset: {
       width: 0,
       height: 4,
@@ -592,11 +593,11 @@ const styles = StyleSheet.create({
   },
   bottomNav: {
     flexDirection: 'row',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: Colors.nav.background,
     paddingVertical: 8,
     paddingHorizontal: 40,
     borderTopWidth: 1,
-    borderTopColor: '#E8EAED',
+    borderTopColor: Colors.nav.border,
     justifyContent: 'space-around',
   },
   navItem: {
@@ -607,17 +608,17 @@ const styles = StyleSheet.create({
   },
   activeNavItem: {
     borderTopWidth: 2,
-    borderTopColor: '#1A73E8',
+    borderTopColor: Colors.nav.active,
   },
   navText: {
     fontSize: 12,
-    color: '#5F6368',
+    color: Colors.nav.inactive,
     marginTop: 4,
     fontWeight: '400',
   },
   activeNavText: {
     fontSize: 12,
-    color: '#1A73E8',
+    color: Colors.nav.active,
     marginTop: 4,
     fontWeight: '500',
   },
@@ -625,7 +626,7 @@ const styles = StyleSheet.create({
   welcomeText: {
     fontSize: 28,
     fontWeight: '700',
-    color: '#1C1C1E',
+    color: Colors.text.primary,
     letterSpacing: -0.5,
   },
   headerActions: {
@@ -639,7 +640,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#1C1C1E',
+    color: Colors.text.primary,
     marginBottom: 16,
   },
   recentItemsContainer: {
@@ -654,14 +655,14 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: '#E5E5EA',
+    backgroundColor: Colors.surface,
     alignItems: 'center',
     justifyContent: 'center',
   },
   recentIconText: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#1C1C1E',
+    color: Colors.text.primary,
   },
   categoryHeader: {
     flexDirection: 'row',
@@ -677,28 +678,28 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 20,
-    backgroundColor: '#F2F2F7',
+    backgroundColor: Colors.surface,
   },
   activeCategoryButton: {
-    backgroundColor: '#1C1C1E',
+    backgroundColor: Colors.primary,
   },
   categoryButtonText: {
     fontSize: 14,
     fontWeight: '500',
-    color: '#8E8E93',
+    color: Colors.text.secondary,
   },
   activeCategoryButtonText: {
-    color: '#FFFFFF',
+    color: Colors.text.inverse,
   },
   userInfo: {
     fontSize: 20,
-    color: '#007AFF',
+    color: Colors.primary,
     fontWeight: '600',
     marginBottom: 5,
   },
   emailText: {
     fontSize: 16,
-    color: '#666',
+    color: Colors.text.secondary,
   },
   passwordSection: {
     flex: 1,
@@ -711,23 +712,23 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   addButton: {
-    backgroundColor: '#007AFF',
+    backgroundColor: Colors.primary,
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 20,
   },
   addButtonText: {
-    color: '#fff',
+    color: Colors.text.inverse,
     fontSize: 14,
     fontWeight: '600',
   },
   emptyStateSubtext: {
     fontSize: 14,
-    color: '#999',
+    color: Colors.text.tertiary,
     textAlign: 'center',
   },
   settingsSection: {
-    backgroundColor: '#fff',
+    backgroundColor: Colors.background,
     borderRadius: 12,
     padding: 20,
     marginBottom: 20,
@@ -735,7 +736,7 @@ const styles = StyleSheet.create({
   settingsTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#333',
+    color: Colors.text.primary,
     marginBottom: 20,
   },
   settingItem: {
@@ -750,22 +751,22 @@ const styles = StyleSheet.create({
   settingLabel: {
     fontSize: 16,
     fontWeight: '500',
-    color: '#333',
+    color: Colors.text.primary,
     marginBottom: 4,
   },
   settingDescription: {
     fontSize: 14,
-    color: '#666',
+    color: Colors.text.secondary,
     lineHeight: 18,
   },
   logoutButton: {
-    backgroundColor: '#FF3B30',
+    backgroundColor: Colors.error,
     padding: 15,
     borderRadius: 8,
     alignItems: 'center',
   },
   logoutButtonText: {
-    color: '#fff',
+    color: Colors.text.inverse,
     fontSize: 16,
     fontWeight: '600',
   },

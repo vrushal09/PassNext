@@ -14,6 +14,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { passwordService, PasswordInput } from '../services/passwordService';
+import Colors from '../constants/Colors';
 
 interface AddPasswordModalProps {
   visible: boolean;
@@ -70,7 +71,7 @@ export const AddPasswordModal: React.FC<AddPasswordModalProps> = ({
         >
           <View style={styles.header}>
             <TouchableOpacity onPress={handleClose} style={styles.headerButton}>
-              <Ionicons name="close" size={24} color="#5F6368" />
+              <Ionicons name="close" size={24} color={Colors.text.secondary} />
             </TouchableOpacity>
             <Text style={styles.title}>Add Password</Text>
             <TouchableOpacity onPress={handleSubmit} disabled={loading} style={styles.headerButton}>
@@ -84,13 +85,13 @@ export const AddPasswordModal: React.FC<AddPasswordModalProps> = ({
             <View style={styles.inputGroup}>
               <Text style={styles.label}>Service Name</Text>
               <View style={styles.inputContainer}>
-                <Ionicons name="business-outline" size={20} color="#9AA0A6" style={styles.inputIcon} />
+                <Ionicons name="business-outline" size={20} color={Colors.text.tertiary} style={styles.inputIcon} />
                 <TextInput
                   style={styles.input}
                   value={formData.service}
                   onChangeText={(text) => setFormData({ ...formData, service: text })}
                   placeholder="e.g., Google, Facebook, GitHub"
-                  placeholderTextColor="#9AA0A6"
+                  placeholderTextColor={Colors.input.placeholder}
                   autoCapitalize="words"
                 />
               </View>
@@ -99,13 +100,13 @@ export const AddPasswordModal: React.FC<AddPasswordModalProps> = ({
             <View style={styles.inputGroup}>
               <Text style={styles.label}>Account</Text>
               <View style={styles.inputContainer}>
-                <Ionicons name="person-outline" size={20} color="#9AA0A6" style={styles.inputIcon} />
+                <Ionicons name="person-outline" size={20} color={Colors.text.tertiary} style={styles.inputIcon} />
                 <TextInput
                   style={styles.input}
                   value={formData.account}
                   onChangeText={(text) => setFormData({ ...formData, account: text })}
                   placeholder="Email or username"
-                  placeholderTextColor="#9AA0A6"
+                  placeholderTextColor={Colors.input.placeholder}
                   autoCapitalize="none"
                   keyboardType="email-address"
                 />
@@ -115,13 +116,13 @@ export const AddPasswordModal: React.FC<AddPasswordModalProps> = ({
             <View style={styles.inputGroup}>
               <Text style={styles.label}>Password</Text>
               <View style={styles.inputContainer}>
-                <Ionicons name="lock-closed-outline" size={20} color="#9AA0A6" style={styles.inputIcon} />
+                <Ionicons name="lock-closed-outline" size={20} color={Colors.text.tertiary} style={styles.inputIcon} />
                 <TextInput
                   style={styles.input}
                   value={formData.password}
                   onChangeText={(text) => setFormData({ ...formData, password: text })}
                   placeholder="Enter password"
-                  placeholderTextColor="#9AA0A6"
+                  placeholderTextColor={Colors.input.placeholder}
                   secureTextEntry
                 />
               </View>
@@ -130,13 +131,13 @@ export const AddPasswordModal: React.FC<AddPasswordModalProps> = ({
             <View style={styles.inputGroup}>
               <Text style={styles.label}>Notes (Optional)</Text>
               <View style={[styles.inputContainer, styles.textAreaContainer]}>
-                <Ionicons name="document-text-outline" size={20} color="#9AA0A6" style={[styles.inputIcon, styles.textAreaIcon]} />
+                <Ionicons name="document-text-outline" size={20} color={Colors.text.tertiary} style={[styles.inputIcon, styles.textAreaIcon]} />
                 <TextInput
                   style={[styles.input, styles.textArea]}
                   value={formData.notes}
                   onChangeText={(text) => setFormData({ ...formData, notes: text })}
                   placeholder="Additional notes"
-                  placeholderTextColor="#9AA0A6"
+                  placeholderTextColor={Colors.input.placeholder}
                   multiline
                   numberOfLines={4}
                   textAlignVertical="top"
@@ -153,7 +154,7 @@ export const AddPasswordModal: React.FC<AddPasswordModalProps> = ({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: Colors.background,
   },
   keyboardContainer: {
     flex: 1,
@@ -164,9 +165,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 20,
     paddingVertical: 16,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: Colors.background,
     borderBottomWidth: 1,
-    borderBottomColor: '#E8EAED',
+    borderBottomColor: Colors.border,
   },
   headerButton: {
     padding: 8,
@@ -176,20 +177,20 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 20,
     fontWeight: '600',
-    color: '#3C4043',
+    color: Colors.text.primary,
   },
   cancelButton: {
     fontSize: 16,
-    color: '#5F6368',
+    color: Colors.text.secondary,
     fontWeight: '500',
   },
   saveButton: {
     fontSize: 16,
-    color: '#1A73E8',
+    color: Colors.primary,
     fontWeight: '600',
   },
   disabledButton: {
-    color: '#9AA0A6',
+    color: Colors.text.tertiary,
   },
   form: {
     flex: 1,
@@ -202,16 +203,16 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 16,
     fontWeight: '500',
-    color: '#3C4043',
+    color: Colors.text.primary,
     marginBottom: 12,
   },
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#F8F9FA',
+    backgroundColor: Colors.input.background,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#E8EAED',
+    borderColor: Colors.input.border,
     paddingHorizontal: 16,
     paddingVertical: 14,
   },
@@ -221,7 +222,7 @@ const styles = StyleSheet.create({
   input: {
     flex: 1,
     fontSize: 16,
-    color: '#3C4043',
+    color: Colors.text.primary,
     fontWeight: '400',
   },
   textAreaContainer: {

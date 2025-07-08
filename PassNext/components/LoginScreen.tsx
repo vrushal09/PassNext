@@ -11,6 +11,7 @@ import {
   ScrollView,
 } from 'react-native';
 import { authService } from '../services/authService';
+import Colors from '../constants/Colors';
 
 interface LoginScreenProps {
   onNavigateToSignUp: () => void;
@@ -109,7 +110,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onNavigateToSignUp }) 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: Colors.background,
   },
   scrollContainer: {
     flexGrow: 1,
@@ -123,27 +124,27 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 32,
     fontWeight: 'bold',
-    color: '#333',
+    color: Colors.text.primary,
     marginBottom: 8,
   },
   subtitle: {
     fontSize: 16,
-    color: '#666',
+    color: Colors.text.secondary,
   },
   form: {
     width: '100%',
   },
   input: {
     borderWidth: 1,
-    borderColor: '#ddd',
+    borderColor: Colors.border,
     borderRadius: 8,
     padding: 15,
     marginBottom: 15,
     fontSize: 16,
-    backgroundColor: '#f9f9f9',
+    backgroundColor: Colors.surface,
   },
   button: {
-    backgroundColor: '#007AFF',
+    backgroundColor: Colors.button.primary,
     padding: 15,
     borderRadius: 8,
     alignItems: 'center',
@@ -154,23 +155,23 @@ const styles = StyleSheet.create({
     opacity: 0.6,
   },
   buttonText: {
-    color: '#fff',
+    color: Colors.text.inverse,
     fontSize: 16,
     fontWeight: '600',
   },
   forgotPassword: {
-    color: '#007AFF',
+    color: Colors.primary,
     textAlign: 'right',
     marginBottom: 20,
     fontSize: 14,
   },
   linkText: {
     textAlign: 'center',
-    color: '#666',
+    color: Colors.text.secondary,
     fontSize: 14,
   },
   linkTextBold: {
-    color: '#007AFF',
+    color: Colors.primary,
     fontWeight: '600',
   },
 });

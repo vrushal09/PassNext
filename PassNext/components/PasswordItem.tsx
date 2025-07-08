@@ -14,6 +14,7 @@ import { PanGestureHandler, State } from 'react-native-gesture-handler';
 import { Ionicons } from '@expo/vector-icons';
 import { Password } from '../services/passwordService';
 import { biometricAuthService } from '../services/biometricAuthService';
+import Colors from '../constants/Colors';
 
 interface PasswordItemProps {
   password: Password;
@@ -101,7 +102,7 @@ export const PasswordItem: React.FC<PasswordItemProps> = ({
     for (const [key, value] of Object.entries(iconMap)) {
       if (service.includes(key)) {
         return (
-          <View style={[styles.serviceIcon, { backgroundColor: '#F8F9FA' }]}>
+          <View style={[styles.serviceIcon, { backgroundColor: Colors.surface }]}>
             <Ionicons name={value.name} size={24} color={value.color} />
           </View>
         );
@@ -110,7 +111,7 @@ export const PasswordItem: React.FC<PasswordItemProps> = ({
 
     // Default fallback with first letter
     const firstLetter = serviceName.charAt(0).toUpperCase();
-    const colors = ['#007AFF', '#34C759', '#FF9500', '#FF3B30', '#AF52DE', '#FF2D92', '#5AC8FA'];
+    const colors = [Colors.primary, Colors.primaryLight, Colors.primaryDark, Colors.error, Colors.warning, Colors.success, Colors.info];
     const colorIndex = serviceName.length % colors.length;
     
     return (
@@ -222,7 +223,7 @@ export const PasswordItem: React.FC<PasswordItemProps> = ({
   const getBackgroundColor = () => {
     return translateX.interpolate({
       inputRange: [-screenWidth, -swipeThreshold, 0, swipeThreshold, screenWidth],
-      outputRange: ['#FF3B30', '#FF3B30', 'transparent', '#1A73E8', '#1A73E8'],
+      outputRange: [Colors.error, Colors.error, 'transparent', Colors.primary, Colors.primary],
       extrapolate: 'clamp',
     });
   };
@@ -326,9 +327,9 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     borderRadius: 16,
     overflow: 'hidden',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: Colors.background,
     borderWidth: 1,
-    borderColor: '#E8EAED',
+    borderColor: Colors.border,
   },
   swipeWrapper: {
     position: 'relative',
@@ -347,7 +348,7 @@ const styles = StyleSheet.create({
     position: 'relative',
     borderRadius: 16,
     minHeight: 80,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: Colors.background,
     zIndex: 2,
   },
   leftAction: {
@@ -377,7 +378,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   content: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: Colors.background,
     borderRadius: 16,
     padding: 16,
     zIndex: 2,
@@ -396,7 +397,7 @@ const styles = StyleSheet.create({
     marginRight: 16,
   },
   serviceIconText: {
-    color: '#FFFFFF',
+    color: Colors.text.inverse,
     fontSize: 20,
     fontWeight: '600',
   },
@@ -407,12 +408,12 @@ const styles = StyleSheet.create({
   serviceName: {
     fontSize: 16,
     fontWeight: '500',
-    color: '#3C4043',
+    color: Colors.text.primary,
     marginBottom: 2,
   },
   serviceUrl: {
     fontSize: 14,
-    color: '#5F6368',
+    color: Colors.text.secondary,
     marginBottom: 4,
     fontWeight: '400',
   },
@@ -423,12 +424,12 @@ const styles = StyleSheet.create({
   },
   passwordLabel: {
     fontSize: 13,
-    color: '#5F6368',
+    color: Colors.text.secondary,
     fontWeight: '400',
   },
   passwordValue: {
     fontSize: 13,
-    color: '#3C4043',
+    color: Colors.text.primary,
     fontFamily: Platform.OS === 'ios' ? 'SF Mono' : 'monospace',
     letterSpacing: 0.5,
     fontWeight: '400',
@@ -437,12 +438,12 @@ const styles = StyleSheet.create({
     padding: 12,
     marginLeft: 8,
     borderRadius: 12,
-    backgroundColor: '#F8F9FA',
+    backgroundColor: Colors.surface,
     borderWidth: 1,
-    borderColor: '#E8EAED',
+    borderColor: Colors.border,
   },
   actionText: {
-    color: '#FFFFFF',
+    color: Colors.text.inverse,
     fontSize: 12,
     fontWeight: '500',
     marginTop: 4,
@@ -452,11 +453,11 @@ const styles = StyleSheet.create({
     marginTop: 12,
     paddingTop: 12,
     borderTopWidth: 1,
-    borderTopColor: '#E8EAED',
+    borderTopColor: Colors.border,
   },
   notes: {
     fontSize: 13,
-    color: '#5F6368',
+    color: Colors.text.secondary,
     lineHeight: 18,
     fontWeight: '400',
   },
@@ -468,12 +469,12 @@ const styles = StyleSheet.create({
   service: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#333',
+    color: Colors.text.primary,
     marginBottom: 4,
   },
   swipeHint: {
     fontSize: 10,
-    color: '#999',
+    color: Colors.text.tertiary,
     fontStyle: 'italic',
     textAlign: 'center',
   },
@@ -482,12 +483,12 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 12,
-    color: '#666',
+    color: Colors.text.secondary,
     marginBottom: 2,
   },
   value: {
     fontSize: 16,
-    color: '#333',
+    color: Colors.text.primary,
     fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
     flex: 1,
   },
@@ -495,22 +496,22 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: '#f8f8f8',
+    backgroundColor: Colors.surface,
     padding: 12,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#e0e0e0',
+    borderColor: Colors.border,
     marginTop: 4,
   },
   copyButton: {
-    backgroundColor: '#007AFF',
+    backgroundColor: Colors.primary,
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 6,
     marginLeft: 12,
   },
   copyButtonText: {
-    color: '#fff',
+    color: Colors.text.inverse,
     fontSize: 12,
     fontWeight: '600',
   },
@@ -518,10 +519,10 @@ const styles = StyleSheet.create({
     marginTop: 8,
     paddingTop: 8,
     borderTopWidth: 1,
-    borderTopColor: '#f0f0f0',
+    borderTopColor: Colors.divider,
   },
   date: {
     fontSize: 11,
-    color: '#999',
+    color: Colors.text.tertiary,
   },
 });

@@ -9,6 +9,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { biometricAuthService } from '../services/biometricAuthService';
+import Colors from '../constants/Colors';
 
 interface BiometricAuthScreenProps {
   onSuccess: () => void;
@@ -97,7 +98,7 @@ export const BiometricAuthScreen: React.FC<BiometricAuthScreenProps> = ({
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#007AFF" />
+          <ActivityIndicator size="large" color={Colors.primary} />
           <Text style={styles.loadingText}>Checking biometric availability...</Text>
         </View>
       </SafeAreaView>
@@ -147,7 +148,7 @@ export const BiometricAuthScreen: React.FC<BiometricAuthScreenProps> = ({
           disabled={isAuthenticating}
         >
           {isAuthenticating ? (
-            <ActivityIndicator color="#fff" />
+            <ActivityIndicator color={Colors.text.inverse} />
           ) : (
             <Text style={styles.buttonText}>Use {authTypeName}</Text>
           )}
@@ -164,7 +165,7 @@ export const BiometricAuthScreen: React.FC<BiometricAuthScreenProps> = ({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: Colors.background,
   },
   loadingContainer: {
     flex: 1,
@@ -174,7 +175,7 @@ const styles = StyleSheet.create({
   loadingText: {
     marginTop: 10,
     fontSize: 16,
-    color: '#666',
+    color: Colors.text.secondary,
   },
   content: {
     flex: 1,
@@ -186,7 +187,7 @@ const styles = StyleSheet.create({
     width: 120,
     height: 120,
     borderRadius: 60,
-    backgroundColor: '#f0f0f0',
+    backgroundColor: Colors.surface,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 40,
@@ -197,20 +198,20 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 28,
     fontWeight: 'bold',
-    color: '#333',
+    color: Colors.text.primary,
     marginBottom: 16,
     textAlign: 'center',
   },
   subtitle: {
     fontSize: 16,
-    color: '#666',
+    color: Colors.text.secondary,
     textAlign: 'center',
     lineHeight: 22,
     marginBottom: 40,
     paddingHorizontal: 20,
   },
   button: {
-    backgroundColor: '#007AFF',
+    backgroundColor: Colors.button.primary,
     paddingVertical: 16,
     paddingHorizontal: 32,
     borderRadius: 12,
@@ -223,7 +224,7 @@ const styles = StyleSheet.create({
     opacity: 0.6,
   },
   buttonText: {
-    color: '#fff',
+    color: Colors.text.inverse,
     fontSize: 16,
     fontWeight: '600',
   },
@@ -232,7 +233,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   skipButtonText: {
-    color: '#666',
+    color: Colors.text.secondary,
     fontSize: 16,
   },
 });
