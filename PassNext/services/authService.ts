@@ -5,6 +5,7 @@ import {
   sendPasswordResetEmail,
   updateProfile
 } from 'firebase/auth';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { auth } from '../config/firebase';
 
 export const authService = {
@@ -38,6 +39,8 @@ export const authService = {
   signOut: async () => {
     try {
       await signOut(auth);
+      // Clear biometric session when signing out
+      await AsyncStorage.removeItem('biometric_session');
       return { success: true };
     } catch (error: any) {
       return { success: false, error: error.message };

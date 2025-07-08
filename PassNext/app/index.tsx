@@ -7,7 +7,7 @@ import { HomeScreen } from "../components/HomeScreen";
 import { BiometricAuthScreen } from "../components/BiometricAuthScreen";
 
 export default function Index() {
-  const { user, loading } = useAuth();
+  const { user, loading, initialized } = useAuth();
   const { 
     isBiometricRequired, 
     setBiometricAuthenticated, 
@@ -15,7 +15,8 @@ export default function Index() {
     setBiometricEnabled
   } = useBiometricAuth();
 
-  if (loading) {
+  // Wait for Firebase Auth to initialize
+  if (!initialized || loading) {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color="#007AFF" />

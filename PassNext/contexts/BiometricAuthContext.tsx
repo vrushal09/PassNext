@@ -29,6 +29,7 @@ export const useBiometricAuth = () => {
 
 const BIOMETRIC_ENABLED_KEY = 'biometric_enabled';
 const BIOMETRIC_SKIPPED_KEY = 'biometric_skipped';
+const BIOMETRIC_SESSION_KEY = 'biometric_session';
 
 export const BiometricAuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [isBiometricEnabled, setIsBiometricEnabled] = useState(false);
@@ -42,13 +43,30 @@ export const BiometricAuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const loadBiometricSettings = async () => {
     try {
-      const [enabled, skipped] = await Promise.all([
+      const [enabled, skipped, session] = await Promise.all([
         AsyncStorage.getItem(BIOMETRIC_ENABLED_KEY),
         AsyncStorage.getItem(BIOMETRIC_SKIPPED_KEY),
+        AsyncStorage.getItem(BIOMETRIC_SESSION_KEY),
       ]);
 
       setIsBiometricEnabled(enabled === 'true');
       setIsBiometricSkipped(skipped === 'true');
+      
+      // Check if we have a valid session (within last 24 hours)
+      if (session) {
+        const sessionTime = parseInt(session);
+        const now = Date.now();
+        const twentyFourHours = 24 * 60 * 60 * 1000;
+        
+        if (now - sessionTime < twentyFourHours) {
+          setIsBiometricAuthenticated(true);
+        }
+      }
+      
+      // If biometric was skipped, don't require it on restart
+      if (skipped === 'true') {
+        setIsBiometricAuthenticated(true);
+      }
     } catch (error) {
       console.error('Error loading biometric settings:', error);
     } finally {
@@ -71,8 +89,24 @@ export const BiometricAuthProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   };
 
-  const setBiometricAuthenticated = (authenticated: boolean) => {
+  const setBiometricAuthenticated = async (authenticated: boolean) => {
     setIsBiometricAuthenticated(authenticated);
+    
+    if (authenticated) {
+      // Store session timestamp
+      try {
+        await AsyncStorage.setItem(BIOMETRIC_SESSION_KEY, Date.now().toString());
+      } catch (error) {
+        console.error('Error saving biometric session:', error);
+      }
+    } else {
+      // Clear session when logged out
+      try {
+        await AsyncStorage.removeItem(BIOMETRIC_SESSION_KEY);
+      } catch (error) {
+        console.error('Error clearing biometric session:', error);
+      }
+    }
   };
 
   const skipBiometric = async () => {
@@ -86,10 +120,25 @@ export const BiometricAuthProvider: React.FC<{ children: React.ReactNode }> = ({
   };
 
   // Determine if biometric authentication is required
-  const isBiometricRequired = isBiometricEnabled && !isBiometricAuthenticated;
+  // Only require biometric if it's enabled AND not authenticated AND not skipped
+  const isBiometricRequired = isBiometricEnabled && !isBiometricAuthenticated && !isBiometricSkipped;
 
   if (isLoading) {
-    return null; // or a loading component
+    // Don't block rendering, just use default values while loading
+    return (
+      <BiometricAuthContext.Provider
+        value={{
+          isBiometricEnabled: false,
+          isBiometricRequired: false,
+          isBiometricAuthenticated: true, // Allow access while loading
+          setBiometricEnabled,
+          setBiometricAuthenticated,
+          skipBiometric,
+        }}
+      >
+        {children}
+      </BiometricAuthContext.Provider>
+    );
   }
 
   return (
