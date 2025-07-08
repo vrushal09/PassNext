@@ -6,7 +6,11 @@ export default function RootLayout() {
   return (
     <AuthProvider>
       <BiometricAuthProvider>
-        <Stack />
+        <Stack
+          screenOptions={{
+            headerShown: false,
+          }}
+        />
       </BiometricAuthProvider>
     </AuthProvider>
   );

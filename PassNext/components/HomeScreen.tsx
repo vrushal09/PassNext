@@ -36,6 +36,7 @@ export const HomeScreen: React.FC = () => {
   const [selectedPassword, setSelectedPassword] = useState<Password | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
+  const [currentTab, setCurrentTab] = useState('home');
 
   // Load passwords on component mount
   useEffect(() => {
@@ -119,6 +120,18 @@ export const HomeScreen: React.FC = () => {
     loadPasswords();
   };
 
+  const handleProfilePress = () => {
+    Alert.alert(
+      'Profile',
+      'Profile page functionality coming soon!',
+      [{ text: 'OK' }]
+    );
+  };
+
+  const handleTabPress = (tab: string) => {
+    setCurrentTab(tab);
+  };
+
   const handleLogout = async () => {
     Alert.alert(
       'Logout',
@@ -186,23 +199,15 @@ export const HomeScreen: React.FC = () => {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaView style={styles.container}>
         <View style={styles.content}>
-          {/* Header */}
-          <View style={styles.header}>
-            <View style={styles.headerLeft}>
-              <Text style={styles.googleText}>Pass</Text>
-              <Text style={styles.passText}>Next</Text>
-            </View>
-            <TouchableOpacity style={styles.profileButton}>
-              <View style={styles.profileCircle}>
-                <Text style={styles.profileInitial}>
-                  {user?.displayName?.charAt(0) || user?.email?.charAt(0) || 'U'}
-                </Text>
+          {currentTab === 'home' && (
+            <>
+              {/* Header */}
+              <View style={styles.homeHeader}>
+                <Text style={styles.appTitle}>PassNext</Text>
               </View>
-            </TouchableOpacity>
-          </View>
 
-          {/* Search */}
-          <View style={styles.searchSection}>
+              {/* Search */}
+              <View style={styles.searchSection}>
             <View style={styles.searchContainer}>
               <Ionicons name="search-outline" size={20} color="#9AA0A6" style={styles.searchIcon} />
               <TextInput
@@ -270,21 +275,85 @@ export const HomeScreen: React.FC = () => {
           >
             <Ionicons name="add" size={28} color="#FFFFFF" />
           </TouchableOpacity>
+            </>
+          )}
+
+          {currentTab === 'security' && (
+            <View style={styles.securityContent}>
+              <View style={styles.securityHeader}>
+                <Text style={styles.securityTitle}>Security Settings</Text>
+                <TouchableOpacity style={styles.profileButton} onPress={handleProfilePress}>
+                  <View style={styles.profileCircle}>
+                    <Text style={styles.profileInitial}>
+                      {user?.displayName?.charAt(0) || user?.email?.charAt(0) || 'U'}
+                    </Text>
+                  </View>
+                </TouchableOpacity>
+              </View>
+
+              <View style={styles.securitySection}>
+                <View style={styles.securityItem}>
+                  <View style={styles.securityItemIcon}>
+                    <Ionicons name="finger-print" size={24} color="#1A73E8" />
+                  </View>
+                  <View style={styles.securityItemContent}>
+                    <Text style={styles.securityItemTitle}>Biometric Authentication</Text>
+                    <Text style={styles.securityItemDescription}>
+                      {isBiometricEnabled ? 'Enabled' : 'Disabled'}
+                    </Text>
+                  </View>
+                  <Switch
+                    value={isBiometricEnabled}
+                    onValueChange={handleBiometricToggle}
+                    trackColor={{ false: '#E8EAED', true: '#1A73E8' }}
+                    thumbColor={isBiometricEnabled ? '#FFFFFF' : '#5F6368'}
+                  />
+                </View>
+
+                <View style={styles.securityItem}>
+                  <View style={styles.securityItemIcon}>
+                    <Ionicons name="shield-checkmark" size={24} color="#34A853" />
+                  </View>
+                  <View style={styles.securityItemContent}>
+                    <Text style={styles.securityItemTitle}>Password Strength</Text>
+                    <Text style={styles.securityItemDescription}>
+                      {passwords.length} passwords stored securely
+                    </Text>
+                  </View>
+                </View>
+
+                <TouchableOpacity style={[styles.securityItem, styles.lastSecurityItem]} onPress={handleLogout}>
+                  <View style={styles.securityItemIcon}>
+                    <Ionicons name="log-out" size={24} color="#FF3B30" />
+                  </View>
+                  <View style={styles.securityItemContent}>
+                    <Text style={styles.securityItemTitle}>Sign Out</Text>
+                    <Text style={styles.securityItemDescription}>
+                      Sign out of your account
+                    </Text>
+                  </View>
+                  <Ionicons name="chevron-forward" size={20} color="#5F6368" />
+                </TouchableOpacity>
+              </View>
+            </View>
+          )}
         </View>
 
         {/* Bottom Navigation */}
         <View style={styles.bottomNav}>
-          <TouchableOpacity style={[styles.navItem, styles.activeNavItem]}>
-            <Ionicons name="apps" size={24} color="#1A73E8" />
-            <Text style={styles.activeNavText}>Home</Text>
+          <TouchableOpacity 
+            style={[styles.navItem, currentTab === 'home' && styles.activeNavItem]}
+            onPress={() => handleTabPress('home')}
+          >
+            <Ionicons name="apps" size={24} color={currentTab === 'home' ? "#1A73E8" : "#5F6368"} />
+            <Text style={currentTab === 'home' ? styles.activeNavText : styles.navText}>Home</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.navItem}>
-            <Ionicons name="shield-checkmark" size={24} color="#5F6368" />
-            <Text style={styles.navText}>Security</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.navItem}>
-            <Ionicons name="ellipsis-horizontal" size={24} color="#5F6368" />
-            <Text style={styles.navText}>Other</Text>
+          <TouchableOpacity 
+            style={[styles.navItem, currentTab === 'security' && styles.activeNavItem]}
+            onPress={() => handleTabPress('security')}
+          >
+            <Ionicons name="shield-checkmark" size={24} color={currentTab === 'security' ? "#1A73E8" : "#5F6368"} />
+            <Text style={currentTab === 'security' ? styles.activeNavText : styles.navText}>Security</Text>
           </TouchableOpacity>
         </View>
 
@@ -315,9 +384,21 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#FFFFFF',
+    paddingTop: 10,
   },
   content: {
     flex: 1,
+  },
+  homeHeader: {
+    paddingHorizontal: 20,
+    paddingTop: 50,
+    paddingBottom: 16,
+  },
+  appTitle: {
+    fontSize: 32,
+    fontWeight: '500',
+    color: '#1C1C1E',
+    letterSpacing: -0.8,
   },
   header: {
     flexDirection: 'row',
@@ -360,7 +441,7 @@ const styles = StyleSheet.create({
   },
   searchSection: {
     paddingHorizontal: 20,
-    marginBottom: 20,
+    marginBottom: 24,
   },
   searchContainer: {
     flexDirection: 'row',
@@ -390,15 +471,72 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 20,
-    marginBottom: 16,
+    marginBottom: 20,
   },
   mostUsedTitle: {
-    fontSize: 14,
-    fontWeight: '500',
+    fontSize: 16,
+    fontWeight: '600',
     color: '#3C4043',
   },
   expandButton: {
     padding: 4,
+  },
+  securityContent: {
+    flex: 1,
+    paddingTop: 50,
+  },
+  securityHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingBottom: 20,
+  },
+  securityTitle: {
+    fontSize: 24,
+    fontWeight: '600',
+    color: '#3C4043',
+  },
+  securitySection: {
+    backgroundColor: '#FFFFFF',
+    marginHorizontal: 16,
+    borderRadius: 16,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: '#E8EAED',
+  },
+  securityItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F8F9FA',
+  },
+  securityItemIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#F8F9FA',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 16,
+  },
+  securityItemContent: {
+    flex: 1,
+  },
+  securityItemTitle: {
+    fontSize: 16,
+    fontWeight: '500',
+    color: '#3C4043',
+    marginBottom: 2,
+  },
+  securityItemDescription: {
+    fontSize: 14,
+    color: '#5F6368',
+    fontWeight: '400',
+  },
+  lastSecurityItem: {
+    borderBottomWidth: 0,
   },
   passwordList: {
     flex: 1,
@@ -435,7 +573,7 @@ const styles = StyleSheet.create({
   },
   floatingAddButton: {
     position: 'absolute',
-    bottom: 100,
+    bottom: 20,
     right: 20,
     width: 56,
     height: 56,
@@ -456,14 +594,16 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     backgroundColor: '#FFFFFF',
     paddingVertical: 8,
-    paddingHorizontal: 20,
+    paddingHorizontal: 40,
     borderTopWidth: 1,
     borderTopColor: '#E8EAED',
+    justifyContent: 'space-around',
   },
   navItem: {
-    flex: 1,
     alignItems: 'center',
     paddingVertical: 8,
+    paddingHorizontal: 20,
+    minWidth: 80,
   },
   activeNavItem: {
     borderTopWidth: 2,
