@@ -11,6 +11,7 @@ import {
   Dimensions,
 } from 'react-native';
 import { PanGestureHandler, State } from 'react-native-gesture-handler';
+import { Ionicons } from '@expo/vector-icons';
 import { Password } from '../services/passwordService';
 import { biometricAuthService } from '../services/biometricAuthService';
 
@@ -69,6 +70,56 @@ export const PasswordItem: React.FC<PasswordItemProps> = ({
     }
   };
 
+  // Get service icon based on service name
+  const getServiceIcon = (serviceName: string) => {
+    const service = serviceName.toLowerCase();
+    
+    // Define icon mappings for popular services
+    const iconMap: { [key: string]: { name: any; color: string } } = {
+      google: { name: 'logo-google', color: '#4285F4' },
+      youtube: { name: 'logo-youtube', color: '#FF0000' },
+      facebook: { name: 'logo-facebook', color: '#1877F2' },
+      instagram: { name: 'logo-instagram', color: '#E4405F' },
+      twitter: { name: 'logo-twitter', color: '#1DA1F2' },
+      linkedin: { name: 'logo-linkedin', color: '#0A66C2' },
+      github: { name: 'logo-github', color: '#333333' },
+      apple: { name: 'logo-apple', color: '#000000' },
+      microsoft: { name: 'logo-microsoft', color: '#00A4EF' },
+      amazon: { name: 'logo-amazon', color: '#FF9900' },
+      netflix: { name: 'logo-netflix', color: '#E50914' },
+      spotify: { name: 'logo-spotify', color: '#1DB954' },
+      dropbox: { name: 'logo-dropbox', color: '#0061FF' },
+      dribbble: { name: 'logo-dribbble', color: '#EA4C89' },
+      slack: { name: 'logo-slack', color: '#4A154B' },
+      discord: { name: 'logo-discord', color: '#5865F2' },
+      paypal: { name: 'logo-paypal', color: '#00457C' },
+      mastercard: { name: 'card', color: '#EB001B' },
+      visa: { name: 'card', color: '#1A1F71' },
+    };
+
+    // Check if we have a specific icon for this service
+    for (const [key, value] of Object.entries(iconMap)) {
+      if (service.includes(key)) {
+        return (
+          <View style={[styles.serviceIcon, { backgroundColor: '#F8F9FA' }]}>
+            <Ionicons name={value.name} size={24} color={value.color} />
+          </View>
+        );
+      }
+    }
+
+    // Default fallback with first letter
+    const firstLetter = serviceName.charAt(0).toUpperCase();
+    const colors = ['#007AFF', '#34C759', '#FF9500', '#FF3B30', '#AF52DE', '#FF2D92', '#5AC8FA'];
+    const colorIndex = serviceName.length % colors.length;
+    
+    return (
+      <View style={[styles.serviceIcon, { backgroundColor: colors[colorIndex] }]}>
+        <Text style={styles.serviceIconText}>{firstLetter}</Text>
+      </View>
+    );
+  };
+
   const onGestureEvent = Animated.event(
     [{ nativeEvent: { translationX: translateX } }],
     { useNativeDriver: true }
@@ -80,10 +131,10 @@ export const PasswordItem: React.FC<PasswordItemProps> = ({
       
       // Determine action based on swipe direction and distance
       if (translationX > swipeThreshold) {
-        // Swipe right - Edit
+        // Swipe right - reveals left action (Edit) with blue background
         handleEdit();
       } else if (translationX < -swipeThreshold) {
-        // Swipe left - Delete
+        // Swipe left - reveals right action (Delete) with red background
         handleDelete();
       }
 
@@ -97,23 +148,72 @@ export const PasswordItem: React.FC<PasswordItemProps> = ({
     }
   };
 
-  const handleEdit = () => {
-    onEdit(password);
+  const handleEdit = async () => {
+    // Require biometric auth for editing
+    const isAvailable = await biometricAuthService.isAvailable();
+    
+    if (isAvailable) {
+      const result = await biometricAuthService.authenticate(
+        `Authenticate to edit password for ${password.service}`
+      );
+      
+      if (result.success) {
+        onEdit(password);
+      } else {
+        Alert.alert(
+          'Authentication Failed', 
+          result.error || 'Biometric authentication failed. Please try again.'
+        );
+      }
+    } else {
+      // If biometric auth is not available, edit directly
+      onEdit(password);
+    }
   };
 
-  const handleDelete = () => {
-    Alert.alert(
-      'Delete Password',
-      `Are you sure you want to delete the password for ${password.service}?`,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Delete',
-          style: 'destructive',
-          onPress: () => onDelete(password.id!),
-        },
-      ]
-    );
+  const handleDelete = async () => {
+    // Require biometric auth for deleting
+    const isAvailable = await biometricAuthService.isAvailable();
+    
+    if (isAvailable) {
+      const result = await biometricAuthService.authenticate(
+        `Authenticate to delete password for ${password.service}`
+      );
+      
+      if (result.success) {
+        Alert.alert(
+          'Delete Password',
+          `Are you sure you want to delete the password for ${password.service}?`,
+          [
+            { text: 'Cancel', style: 'cancel' },
+            {
+              text: 'Delete',
+              style: 'destructive',
+              onPress: () => onDelete(password.id!),
+            },
+          ]
+        );
+      } else {
+        Alert.alert(
+          'Authentication Failed', 
+          result.error || 'Biometric authentication failed. Please try again.'
+        );
+      }
+    } else {
+      // If biometric auth is not available, show delete confirmation directly
+      Alert.alert(
+        'Delete Password',
+        `Are you sure you want to delete the password for ${password.service}?`,
+        [
+          { text: 'Cancel', style: 'cancel' },
+          {
+            text: 'Delete',
+            style: 'destructive',
+            onPress: () => onDelete(password.id!),
+          },
+        ]
+      );
+    }
   };
 
   const maskedPassword = password.password.replace(/./g, '●');
@@ -122,7 +222,7 @@ export const PasswordItem: React.FC<PasswordItemProps> = ({
   const getBackgroundColor = () => {
     return translateX.interpolate({
       inputRange: [-screenWidth, -swipeThreshold, 0, swipeThreshold, screenWidth],
-      outputRange: ['#FF3B30', '#FF3B30', '#ffffff', '#007AFF', '#007AFF'],
+      outputRange: ['#FF3B30', '#FF3B30', 'transparent', '#1A73E8', '#1A73E8'],
       extrapolate: 'clamp',
     });
   };
@@ -143,67 +243,77 @@ export const PasswordItem: React.FC<PasswordItemProps> = ({
         onHandlerStateChange={onHandlerStateChange}
         activeOffsetX={[-10, 10]}
       >
-        <Animated.View
-          style={[
-            styles.swipeContainer,
-            {
-              transform: [{ translateX }],
-              backgroundColor: getBackgroundColor(),
-            },
-          ]}
-        >
+        <Animated.View style={styles.swipeWrapper}>
+          {/* Background for swipe actions */}
+          <Animated.View
+            style={[
+              styles.swipeBackground,
+              {
+                backgroundColor: getBackgroundColor(),
+              },
+            ]}
+          />
+          
           {/* Action indicators */}
           <Animated.View style={[styles.leftAction, { opacity: getActionOpacity() }]}>
-            <Text style={styles.actionText}>DELETE</Text>
+            <View style={styles.editActionContainer}>
+              <Ionicons name="pencil" size={24} color="#FFFFFF" />
+              <Text style={styles.actionText}>Edit</Text>
+            </View>
           </Animated.View>
           
           <Animated.View style={[styles.rightAction, { opacity: getActionOpacity() }]}>
-            <Text style={styles.actionText}>EDIT</Text>
+            <View style={styles.deleteActionContainer}>
+              <Ionicons name="trash" size={24} color="#FFFFFF" />
+              <Text style={styles.actionText}>Delete</Text>
+            </View>
           </Animated.View>
 
           {/* Main content */}
-          <View style={styles.content}>
-            <View style={styles.header}>
-              <Text style={styles.service}>{password.service}</Text>
-              <Text style={styles.swipeHint}>← Swipe to delete • Swipe to edit →</Text>
-            </View>
-
-            <View style={styles.field}>
-              <Text style={styles.label}>Account:</Text>
-              <TouchableOpacity onPress={() => copyToClipboard(password.account, 'Account')}>
-                <Text style={styles.value}>{password.account}</Text>
-              </TouchableOpacity>
-            </View>
-
-            <View style={styles.field}>
-              <Text style={styles.label}>Password:</Text>
-              <View style={styles.passwordContainer}>
-                <Text style={styles.value}>
-                  {maskedPassword}
-                </Text>
-                <TouchableOpacity 
-                  onPress={copyPasswordToClipboard}
-                  style={styles.copyButton}
-                >
-                  <Text style={styles.copyButtonText}>Copy</Text>
-                </TouchableOpacity>
+          <Animated.View
+            style={[
+              styles.swipeContainer,
+              {
+                transform: [{ translateX }],
+              },
+            ]}
+          >
+            <View style={styles.content}>
+            <TouchableOpacity 
+              style={styles.mainContent}
+              onPress={() => copyToClipboard(password.account, 'Account')}
+              activeOpacity={0.8}
+            >
+              {/* Service Icon */}
+              {getServiceIcon(password.service)}
+              
+              {/* Service Info */}
+              <View style={styles.serviceInfo}>
+                <Text style={styles.serviceName}>{password.service}</Text>
+                <Text style={styles.serviceUrl}>{password.account}</Text>
+                <View style={styles.passwordRow}>
+                  <Text style={styles.passwordLabel}>Password: </Text>
+                  <Text style={styles.passwordValue}>••••••••••••</Text>
+                </View>
               </View>
-            </View>
+              
+              {/* Copy Button with Fingerprint Icon */}
+              <TouchableOpacity onPress={copyPasswordToClipboard} style={styles.fingerprintButton}>
+                <Ionicons 
+                  name="finger-print" 
+                  size={22} 
+                  color="#8E8E93" 
+                />
+              </TouchableOpacity>
+            </TouchableOpacity>
 
             {password.notes && (
-              <View style={styles.field}>
-                <Text style={styles.label}>Notes:</Text>
+              <View style={styles.notesSection}>
                 <Text style={styles.notes}>{password.notes}</Text>
               </View>
             )}
-
-            <View style={styles.footer}>
-              <Text style={styles.date}>Created: {formatDate(password.createdAt)}</Text>
-              {password.updatedAt.getTime() !== password.createdAt.getTime() && (
-                <Text style={styles.date}>Updated: {formatDate(password.updatedAt)}</Text>
-              )}
             </View>
-          </View>
+          </Animated.View>
         </Animated.View>
       </PanGestureHandler>
     </View>
@@ -212,26 +322,37 @@ export const PasswordItem: React.FC<PasswordItemProps> = ({
 
 const styles = StyleSheet.create({
   container: {
+    marginHorizontal: 16,
     marginBottom: 12,
-    borderRadius: 12,
+    borderRadius: 16,
     overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 3.84,
-    elevation: 5,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#E8EAED',
+  },
+  swipeWrapper: {
+    position: 'relative',
+    borderRadius: 16,
+    overflow: 'hidden',
+  },
+  swipeBackground: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    borderRadius: 16,
   },
   swipeContainer: {
     position: 'relative',
-    borderRadius: 12,
-    minHeight: 120,
+    borderRadius: 16,
+    minHeight: 80,
+    backgroundColor: '#FFFFFF',
+    zIndex: 2,
   },
   leftAction: {
     position: 'absolute',
-    left: 16,
+    left: 20,
     top: 0,
     bottom: 0,
     justifyContent: 'center',
@@ -240,27 +361,106 @@ const styles = StyleSheet.create({
   },
   rightAction: {
     position: 'absolute',
-    right: 16,
+    right: 20,
     top: 0,
     bottom: 0,
     justifyContent: 'center',
     alignItems: 'flex-end',
     zIndex: 1,
   },
-  actionText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '700',
-    textShadowColor: 'rgba(0, 0, 0, 0.3)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 2,
+  deleteActionContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  editActionContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   content: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
     padding: 16,
     zIndex: 2,
+    width: '100%',
   },
+  mainContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  serviceIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 16,
+  },
+  serviceIconText: {
+    color: '#FFFFFF',
+    fontSize: 20,
+    fontWeight: '600',
+  },
+  serviceInfo: {
+    flex: 1,
+    paddingRight: 12,
+  },
+  serviceName: {
+    fontSize: 16,
+    fontWeight: '500',
+    color: '#3C4043',
+    marginBottom: 2,
+  },
+  serviceUrl: {
+    fontSize: 14,
+    color: '#5F6368',
+    marginBottom: 4,
+    fontWeight: '400',
+  },
+  passwordRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 0,
+  },
+  passwordLabel: {
+    fontSize: 13,
+    color: '#5F6368',
+    fontWeight: '400',
+  },
+  passwordValue: {
+    fontSize: 13,
+    color: '#3C4043',
+    fontFamily: Platform.OS === 'ios' ? 'SF Mono' : 'monospace',
+    letterSpacing: 0.5,
+    fontWeight: '400',
+  },
+  fingerprintButton: {
+    padding: 12,
+    marginLeft: 8,
+    borderRadius: 12,
+    backgroundColor: '#F8F9FA',
+    borderWidth: 1,
+    borderColor: '#E8EAED',
+  },
+  actionText: {
+    color: '#FFFFFF',
+    fontSize: 12,
+    fontWeight: '500',
+    marginTop: 4,
+    textAlign: 'center',
+  },
+  notesSection: {
+    marginTop: 12,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: '#E8EAED',
+  },
+  notes: {
+    fontSize: 13,
+    color: '#5F6368',
+    lineHeight: 18,
+    fontWeight: '400',
+  },
+  // Legacy styles for backward compatibility
   header: {
     flexDirection: 'column',
     marginBottom: 12,
@@ -290,11 +490,6 @@ const styles = StyleSheet.create({
     color: '#333',
     fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
     flex: 1,
-  },
-  notes: {
-    fontSize: 14,
-    color: '#666',
-    lineHeight: 20,
   },
   passwordContainer: {
     flexDirection: 'row',
