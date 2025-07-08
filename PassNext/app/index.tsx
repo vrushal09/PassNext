@@ -1,11 +1,19 @@
 import React from "react";
 import { View, Text, ActivityIndicator, StyleSheet } from "react-native";
 import { useAuth } from "../contexts/AuthContext";
+import { useBiometricAuth } from "../contexts/BiometricAuthContext";
 import { AuthNavigator } from "../components/AuthNavigator";
 import { HomeScreen } from "../components/HomeScreen";
+import { BiometricAuthScreen } from "../components/BiometricAuthScreen";
 
 export default function Index() {
   const { user, loading } = useAuth();
+  const { 
+    isBiometricRequired, 
+    setBiometricAuthenticated, 
+    skipBiometric,
+    setBiometricEnabled
+  } = useBiometricAuth();
 
   if (loading) {
     return (
@@ -16,7 +24,26 @@ export default function Index() {
     );
   }
 
-  return user ? <HomeScreen /> : <AuthNavigator />;
+  // If user is not authenticated, show auth screens
+  if (!user) {
+    return <AuthNavigator />;
+  }
+
+  // If user is authenticated but biometric auth is required
+  if (isBiometricRequired) {
+    return (
+      <BiometricAuthScreen
+        onSuccess={() => {
+          setBiometricAuthenticated(true);
+          setBiometricEnabled(true);
+        }}
+        onSkip={skipBiometric}
+      />
+    );
+  }
+
+  // User is authenticated and biometric auth is satisfied
+  return <HomeScreen />;
 }
 
 const styles = StyleSheet.create({

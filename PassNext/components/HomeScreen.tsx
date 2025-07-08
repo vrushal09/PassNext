@@ -6,12 +6,16 @@ import {
   StyleSheet,
   Alert,
   SafeAreaView,
+  Switch,
 } from 'react-native';
 import { useAuth } from '../contexts/AuthContext';
+import { useBiometricAuth } from '../contexts/BiometricAuthContext';
 import { authService } from '../services/authService';
+import { biometricAuthService } from '../services/biometricAuthService';
 
 export const HomeScreen: React.FC = () => {
   const { user } = useAuth();
+  const { isBiometricEnabled, setBiometricEnabled } = useBiometricAuth();
 
   const handleLogout = async () => {
     Alert.alert(
@@ -31,6 +35,49 @@ export const HomeScreen: React.FC = () => {
         },
       ]
     );
+  };
+
+  const handleBiometricToggle = async (value: boolean) => {
+    if (value) {
+      // Enable biometric auth
+      const isAvailable = await biometricAuthService.isAvailable();
+      
+      if (!isAvailable) {
+        Alert.alert(
+          'Biometric Authentication Unavailable',
+          'Biometric authentication is not available on this device or not set up. Please set up fingerprint, Face ID, or other biometric authentication in your device settings.',
+          [{ text: 'OK' }]
+        );
+        return;
+      }
+
+      // Test biometric auth before enabling
+      const result = await biometricAuthService.authenticate('Confirm to enable biometric authentication');
+      
+      if (result.success) {
+        setBiometricEnabled(true);
+        Alert.alert('Success', 'Biometric authentication has been enabled for your account.');
+      } else {
+        Alert.alert('Authentication Failed', result.error || 'Please try again');
+      }
+    } else {
+      // Disable biometric auth
+      Alert.alert(
+        'Disable Biometric Authentication',
+        'Are you sure you want to disable biometric authentication?',
+        [
+          { text: 'Cancel', style: 'cancel' },
+          {
+            text: 'Disable',
+            style: 'destructive',
+            onPress: () => {
+              setBiometricEnabled(false);
+              Alert.alert('Disabled', 'Biometric authentication has been disabled.');
+            },
+          },
+        ]
+      );
+    }
   };
 
   return (
@@ -53,6 +100,25 @@ export const HomeScreen: React.FC = () => {
           <Text style={styles.subText}>
             This is your main app content area.
           </Text>
+
+          <View style={styles.settingsSection}>
+            <Text style={styles.settingsTitle}>Security Settings</Text>
+            
+            <View style={styles.settingItem}>
+              <View style={styles.settingInfo}>
+                <Text style={styles.settingLabel}>Biometric Authentication</Text>
+                <Text style={styles.settingDescription}>
+                  Use fingerprint or Face ID to quickly access the app
+                </Text>
+              </View>
+              <Switch
+                value={isBiometricEnabled}
+                onValueChange={handleBiometricToggle}
+                trackColor={{ false: '#ccc', true: '#007AFF' }}
+                thumbColor="#fff"
+              />
+            </View>
+          </View>
         </View>
 
         <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
@@ -96,7 +162,6 @@ const styles = StyleSheet.create({
   main: {
     flex: 1,
     justifyContent: 'center',
-    alignItems: 'center',
     paddingHorizontal: 20,
   },
   mainText: {
@@ -111,6 +176,39 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     color: '#666',
     lineHeight: 22,
+    marginBottom: 40,
+  },
+  settingsSection: {
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    padding: 20,
+    marginVertical: 20,
+  },
+  settingsTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#333',
+    marginBottom: 20,
+  },
+  settingItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  settingInfo: {
+    flex: 1,
+    marginRight: 15,
+  },
+  settingLabel: {
+    fontSize: 16,
+    fontWeight: '500',
+    color: '#333',
+    marginBottom: 4,
+  },
+  settingDescription: {
+    fontSize: 14,
+    color: '#666',
+    lineHeight: 18,
   },
   logoutButton: {
     backgroundColor: '#FF3B30',
