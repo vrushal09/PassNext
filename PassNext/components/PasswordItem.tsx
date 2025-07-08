@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
   View,
   Text,
@@ -22,42 +22,12 @@ export const PasswordItem: React.FC<PasswordItemProps> = ({
   onEdit,
   onDelete,
 }) => {
-  const [showPassword, setShowPassword] = useState(false);
-
   const formatDate = (date: Date) => {
     return date.toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',
       day: 'numeric',
     });
-  };
-
-  const handleTogglePassword = async () => {
-    if (!showPassword) {
-      // If password is hidden and user wants to show it, require biometric auth
-      const isAvailable = await biometricAuthService.isAvailable();
-      
-      if (isAvailable) {
-        const result = await biometricAuthService.authenticate(
-          `Authenticate to view password for ${password.service}`
-        );
-        
-        if (result.success) {
-          setShowPassword(true);
-        } else {
-          Alert.alert(
-            'Authentication Failed', 
-            result.error || 'Biometric authentication failed. Please try again.'
-          );
-        }
-      } else {
-        // If biometric auth is not available, show password directly
-        setShowPassword(true);
-      }
-    } else {
-      // If password is shown and user wants to hide it, no auth required
-      setShowPassword(false);
-    }
   };
 
   const copyToClipboard = async (text: string, label: string) => {
@@ -133,19 +103,14 @@ export const PasswordItem: React.FC<PasswordItemProps> = ({
       <View style={styles.field}>
         <Text style={styles.label}>Password:</Text>
         <View style={styles.passwordContainer}>
+          <Text style={styles.value}>
+            {maskedPassword}
+          </Text>
           <TouchableOpacity 
             onPress={copyPasswordToClipboard}
-            style={styles.passwordText}
+            style={styles.copyButton}
           >
-            <Text style={styles.value}>
-              {showPassword ? password.password : maskedPassword}
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity 
-            onPress={handleTogglePassword}
-            style={styles.toggleButton}
-          >
-            <Text style={styles.toggleText}>{showPassword ? 'Hide' : 'Show'}</Text>
+            <Text style={styles.copyButtonText}>Copy</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -222,6 +187,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#333',
     fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
+    flex: 1,
   },
   notes: {
     fontSize: 14,
@@ -232,18 +198,24 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    backgroundColor: '#f8f8f8',
+    padding: 12,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
+    marginTop: 4,
   },
-  passwordText: {
-    flex: 1,
+  copyButton: {
+    backgroundColor: '#007AFF',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 6,
+    marginLeft: 12,
   },
-  toggleButton: {
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-  },
-  toggleText: {
-    color: '#007AFF',
+  copyButtonText: {
+    color: '#fff',
     fontSize: 12,
-    fontWeight: '500',
+    fontWeight: '600',
   },
   footer: {
     marginTop: 8,

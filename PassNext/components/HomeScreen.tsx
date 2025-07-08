@@ -235,6 +235,7 @@ export const HomeScreen: React.FC = () => {
         }}
         onSuccess={handlePasswordSuccess}
         password={selectedPassword}
+        userId={user?.uid || ''}
       />
     </SafeAreaView>
   );

@@ -1,47 +1,47 @@
 {
-  "indexes": [
-    {
-      "collectionGroup": "passwords",
-      "queryScope": "COLLECTION",
-      "fields": [
+    "indexes": [
         {
-          "fieldPath": "userId",
-          "order": "ASCENDING"
+            "collectionGroup": "passwords",
+            "queryScope": "COLLECTION",
+            "fields": [
+                {
+                    "fieldPath": "userId",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "createdAt",
+                    "order": "DESCENDING"
+                }
+            ]
         },
         {
-          "fieldPath": "createdAt",
-          "order": "DESCENDING"
-        }
-      ]
-    },
-    {
-      "collectionGroup": "passwords",
-      "queryScope": "COLLECTION",
-      "fields": [
-        {
-          "fieldPath": "userId",
-          "order": "ASCENDING"
+            "collectionGroup": "passwords",
+            "queryScope": "COLLECTION",
+            "fields": [
+                {
+                    "fieldPath": "userId",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "service",
+                    "order": "ASCENDING"
+                }
+            ]
         },
         {
-          "fieldPath": "service",
-          "order": "ASCENDING"
+            "collectionGroup": "passwords",
+            "queryScope": "COLLECTION",
+            "fields": [
+                {
+                    "fieldPath": "userId",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "updatedAt",
+                    "order": "DESCENDING"
+                }
+            ]
         }
-      ]
-    },
-    {
-      "collectionGroup": "passwords",
-      "queryScope": "COLLECTION",
-      "fields": [
-        {
-          "fieldPath": "userId",
-          "order": "ASCENDING"
-        },
-        {
-          "fieldPath": "updatedAt",
-          "order": "DESCENDING"
-        }
-      ]
-    }
-  ],
-  "fieldOverrides": []
+    ],
+    "fieldOverrides": []
 }

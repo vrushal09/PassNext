@@ -18,6 +18,7 @@ interface EditPasswordModalProps {
   onClose: () => void;
   onSuccess: () => void;
   password: Password | null;
+  userId: string;
 }
 
 export const EditPasswordModal: React.FC<EditPasswordModalProps> = ({
@@ -25,6 +26,7 @@ export const EditPasswordModal: React.FC<EditPasswordModalProps> = ({
   onClose,
   onSuccess,
   password,
+  userId,
 }) => {
   const [formData, setFormData] = useState<PasswordInput>({
     service: password?.service || '',
@@ -57,7 +59,7 @@ export const EditPasswordModal: React.FC<EditPasswordModalProps> = ({
     }
 
     setLoading(true);
-    const result = await passwordService.updatePassword(password.id, formData);
+    const result = await passwordService.updatePassword(password.id, userId, formData);
     setLoading(false);
 
     if (result.success) {

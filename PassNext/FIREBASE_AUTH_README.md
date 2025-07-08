@@ -9,7 +9,7 @@ This project includes a complete Firebase Authentication setup for React Native 
 ✅ Password Reset
 ✅ Auto-login persistence
 ✅ **Biometric Authentication (Fingerprint/Face ID)**
-✅ **Password Manager with CRUD Operations**
+✅ **Password Manager with CRUD Operations & Encryption**
 ✅ Beautiful UI components
 ✅ TypeScript support
 
@@ -25,10 +25,20 @@ This project includes a complete Firebase Authentication setup for React Native 
 
 ## Installation Notes
 
+The project uses the following key dependencies:
+- **Firebase**: Authentication and Firestore database
+- **CryptoJS**: Client-side encryption/decryption
+- **Expo Local Authentication**: Biometric authentication
+
 If you encounter "window is not defined" or Firebase Analytics errors:
 - The firebase.ts config has been simplified to avoid analytics initialization issues
 - Firebase Analytics is not initialized to prevent web compatibility issues
-- Only Firebase Auth is initialized, which is what we need for authentication
+- Only Firebase Auth and Firestore are initialized
+
+To install all dependencies:
+```bash
+npm install
+```
 
 ## Project Structure
 
@@ -41,7 +51,8 @@ If you encounter "window is not defined" or Firebase Analytics errors:
 ├── services/
 │   ├── authService.ts                # Authentication service functions
 │   ├── biometricAuthService.ts       # Biometric authentication service
-│   └── passwordService.ts            # Password CRUD operations service
+│   ├── passwordService.ts            # Password CRUD operations service
+│   └── encryptionService.ts          # Data encryption/decryption service
 ├── components/
 │   ├── AuthNavigator.tsx             # Navigation between login/signup
 │   ├── LoginScreen.tsx               # Login screen component
@@ -117,23 +128,23 @@ const isAvailable = await biometricAuthService.isAvailable();
 const authTypes = await biometricAuthService.getAvailableTypes();
 ```
 
-#### Manage Passwords:
+#### Manage Passwords (with Encryption):
 ```tsx
 import { passwordService } from '../services/passwordService';
 
-// Create a new password
+// Create a new password (automatically encrypted)
 const result = await passwordService.createPassword(userId, {
-  service: 'Google',
-  account: 'user@gmail.com',
-  password: 'securepassword',
-  notes: 'Personal account'
+  service: 'Google',  // Not encrypted - for search/display
+  account: 'user@gmail.com',  // Encrypted before storage
+  password: 'securepassword',  // Encrypted before storage
+  notes: 'Personal account'  // Encrypted before storage
 });
 
-// Get all passwords for user
+// Get all passwords (automatically decrypted)
 const { passwords } = await passwordService.getPasswords(userId);
 
-// Update a password
-await passwordService.updatePassword(passwordId, {
+// Update a password (automatically encrypted)
+await passwordService.updatePassword(passwordId, userId, {
   service: 'Google',
   account: 'user@gmail.com',
   password: 'newsecurepassword',
@@ -144,18 +155,38 @@ await passwordService.updatePassword(passwordId, {
 await passwordService.deletePassword(passwordId);
 ```
 
+#### Direct Encryption/Decryption:
+```tsx
+import { encryptionService } from '../services/encryptionService';
+
+// Encrypt sensitive data
+const encrypted = encryptionService.encrypt('sensitive-data', userId);
+
+// Decrypt sensitive data
+const decrypted = encryptionService.decrypt(encrypted, userId);
+
+// Encrypt password object
+const encryptedData = encryptionService.encryptPasswordData({
+  service: 'GitHub',
+  account: 'developer@example.com',
+  password: 'secret123',
+  notes: 'Work account'
+}, userId);
+```
+
 ## Password Manager
 
 The app now includes a comprehensive password manager with full CRUD operations using Firebase Firestore:
 
 ### Features:
 - **Secure Storage**: All passwords are stored in Firebase Firestore with user isolation
+- **End-to-End Encryption**: Sensitive data (account, password, notes) encrypted before storage
 - **CRUD Operations**: Create, Read, Update, and Delete passwords
 - **Rich Data Model**: Store service name, account, password, and optional notes
 - **User-Friendly Interface**: Beautiful modals for adding and editing passwords
 - **Security Features**: 
-  - Passwords are masked by default with show/hide toggle
-  - **Biometric authentication required to view or copy passwords**
+  - Passwords are always masked for security
+  - **Biometric authentication required to copy passwords**
   - Copy to clipboard functionality for easy use
   - Secure deletion with confirmation
 - **Real-time Updates**: Automatic refresh and synchronization
@@ -172,14 +203,19 @@ The app now includes a comprehensive password manager with full CRUD operations 
 2. **View Passwords**: All passwords are displayed in a scrollable list
 3. **Edit Password**: Tap "Edit" on any password item to modify it
 4. **Delete Password**: Tap "Delete" with confirmation to remove a password
-5. **Copy Data**: Tap on account fields to copy to clipboard, password copying requires biometric authentication
-6. **Show/Hide**: Toggle password visibility with biometric authentication for security
+5. **Copy Data**: Tap on account fields to copy to clipboard, use the "Copy" button next to passwords (requires biometric authentication)
+6. **Always Secure**: Passwords are always hidden and never displayed in plain text
 
 ### Security Considerations:
 - All passwords are associated with the authenticated user's UID
 - Users can only access their own passwords
-- **Biometric authentication required to view or copy passwords (if available on device)**
+- **End-to-end encryption using AES-256 with user-specific keys**
+- **Sensitive data (account, password, notes) encrypted before storage in Firestore**
+- **Service names remain unencrypted for search and display purposes**
+- **Passwords are always masked and never displayed in plain text**
+- **Biometric authentication required to copy passwords to clipboard (if available on device)**
 - **Automatic fallback to direct access if biometric authentication is not available**
+- **Key derivation using PBKDF2 with 10,000 iterations**
 - Biometric authentication adds an extra layer of security
 - Data is stored in Firebase Firestore with built-in security rules
 
@@ -276,3 +312,35 @@ Once created, you should see the index listed as:
 - Add additional auth methods in `authService.ts`
 - Customize error messages and validation
 - Add user profile management features
+
+## Data Encryption
+
+The password manager implements strong encryption to protect sensitive user data:
+
+### Encryption Details:
+- **Algorithm**: AES-256 encryption using CryptoJS library
+- **Key Derivation**: PBKDF2 with 10,000 iterations for enhanced security
+- **User-Specific Keys**: Each user has a unique encryption key derived from their UID
+- **Selective Encryption**: Only sensitive fields are encrypted (account, password, notes)
+- **Service Names**: Remain unencrypted for search and display functionality
+
+### What Gets Encrypted:
+- ✅ **Account/Username**: Fully encrypted before storage
+- ✅ **Password**: Fully encrypted before storage  
+- ✅ **Notes**: Encrypted if provided
+- ❌ **Service Name**: Not encrypted (for search/display)
+- ❌ **Metadata**: userId, timestamps not encrypted
+
+### How It Works:
+1. **On Save**: Data is encrypted client-side before sending to Firestore
+2. **On Retrieve**: Encrypted data is fetched and decrypted client-side
+3. **Key Generation**: User-specific keys derived from UID using PBKDF2
+4. **Error Handling**: Failed decryption skips corrupted entries gracefully
+
+### Security Benefits:
+- **Database Breach Protection**: Even if Firestore is compromised, password data remains encrypted
+- **Admin Protection**: Firebase admins cannot see actual passwords
+- **Transport Security**: Data is encrypted before transmission
+- **Client-Side Processing**: Encryption/decryption happens on user's device
+- **UI Security**: Passwords are never displayed in plain text, always masked
+- **Access Control**: Biometric authentication required for password access via clipboard
