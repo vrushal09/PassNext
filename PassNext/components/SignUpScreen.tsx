@@ -9,9 +9,12 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
+  StatusBar,
+  SafeAreaView,
 } from 'react-native';
 import { authService } from '../services/authService';
 import Colors from '../constants/Colors';
+import { theme } from '../constants/Theme';
 
 interface SignUpScreenProps {
   onNavigateToLogin: () => void;
@@ -21,17 +24,11 @@ export const SignUpScreen: React.FC<SignUpScreenProps> = ({ onNavigateToLogin })
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
 
   const handleSignUp = async () => {
-    if (!name || !email || !password || !confirmPassword) {
+    if (!name || !email || !password) {
       Alert.alert('Error', 'Please fill in all fields');
-      return;
-    }
-
-    if (password !== confirmPassword) {
-      Alert.alert('Error', 'Passwords do not match');
       return;
     }
 
@@ -52,125 +49,173 @@ export const SignUpScreen: React.FC<SignUpScreenProps> = ({ onNavigateToLogin })
   };
 
   return (
-    <KeyboardAvoidingView 
-      style={styles.container} 
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-    >
-      <ScrollView contentContainerStyle={styles.scrollContainer}>
-        <View style={styles.header}>
-          <Text style={styles.title}>Create Account</Text>
-          <Text style={styles.subtitle}>Sign up to get started</Text>
-        </View>
+    <SafeAreaView style={styles.safeArea}>
+      <StatusBar barStyle="light-content" backgroundColor={Colors.background} translucent={false} />
+      <KeyboardAvoidingView
+        style={styles.container}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
+      >
+        <ScrollView 
+          contentContainerStyle={styles.scrollContent}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
+          <View style={styles.header}>
+            <Text style={styles.welcomeText}>Welcome!</Text>
+            <Text style={styles.title}>Sign up</Text>
+            <Text style={styles.subtitle}>Please fill your information</Text>
+          </View>
 
-        <View style={styles.form}>
-          <TextInput
-            style={styles.input}
-            placeholder="Full Name"
-            value={name}
-            onChangeText={setName}
-            autoComplete="name"
-          />
-          
-          <TextInput
-            style={styles.input}
-            placeholder="Email"
-            value={email}
-            onChangeText={setEmail}
-            keyboardType="email-address"
-            autoCapitalize="none"
-            autoComplete="email"
-          />
-          
-          <TextInput
-            style={styles.input}
-            placeholder="Password"
-            value={password}
-            onChangeText={setPassword}
-            secureTextEntry
-            autoComplete="new-password"
-          />
+          <View style={styles.form}>
+            <View style={styles.inputContainer}>
+              <Text style={styles.inputLabel}>Email</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="Account@gmail.com"
+                placeholderTextColor={Colors.text.secondary}
+                value={email}
+                onChangeText={setEmail}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                autoComplete="email"
+              />
+            </View>
 
-          <TextInput
-            style={styles.input}
-            placeholder="Confirm Password"
-            value={confirmPassword}
-            onChangeText={setConfirmPassword}
-            secureTextEntry
-            autoComplete="new-password"
-          />
+            <View style={styles.inputContainer}>
+              <Text style={styles.inputLabel}>Password</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="••••••••"
+                placeholderTextColor={Colors.text.secondary}
+                value={password}
+                onChangeText={setPassword}
+                secureTextEntry
+                autoComplete="new-password"
+              />
+            </View>
 
-          <TouchableOpacity 
-            style={[styles.button, loading && styles.buttonDisabled]} 
-            onPress={handleSignUp}
-            disabled={loading}
-          >
-            <Text style={styles.buttonText}>
-              {loading ? 'Creating Account...' : 'Sign Up'}
-            </Text>
-          </TouchableOpacity>
+            <View style={styles.inputContainer}>
+              <Text style={styles.inputLabel}>Name</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="Full Name"
+                placeholderTextColor={Colors.text.secondary}
+                value={name}
+                onChangeText={setName}
+                autoComplete="name"
+              />
+            </View>
 
-          <TouchableOpacity onPress={onNavigateToLogin}>
-            <Text style={styles.linkText}>
-              Already have an account? <Text style={styles.linkTextBold}>Sign In</Text>
-            </Text>
-          </TouchableOpacity>
-        </View>
-      </ScrollView>
-    </KeyboardAvoidingView>
+            <TouchableOpacity
+              style={[styles.button, loading && styles.buttonDisabled]}
+              onPress={handleSignUp}
+              disabled={loading}
+            >
+              <Text style={styles.buttonText}>
+                {loading ? 'Creating Account...' : 'Done'}
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity onPress={onNavigateToLogin} style={styles.linkContainer}>
+              <Text style={styles.linkText}>
+                Already have an account? <Text style={styles.linkTextBold}>Sign In</Text>
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: Colors.background,
+    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
+  },
   container: {
     flex: 1,
     backgroundColor: Colors.background,
   },
-  scrollContainer: {
+  content: {
+    flex: 1,
+    justifyContent: 'center',
+    paddingHorizontal: 24,
+    paddingVertical: 20,
+  },
+  scrollContent: {
     flexGrow: 1,
     justifyContent: 'center',
-    padding: 20,
+    paddingHorizontal: 24,
+    paddingVertical: 40,
   },
   header: {
     alignItems: 'center',
     marginBottom: 40,
   },
+  welcomeText: {
+    fontSize: 16,
+    color: Colors.text.primary,
+    marginBottom: 4,
+  },
   title: {
-    fontSize: 32,
+    fontSize: 48,
     fontWeight: 'bold',
     color: Colors.text.primary,
-    marginBottom: 8,
+    marginBottom: 6,
   },
   subtitle: {
-    fontSize: 16,
+    fontSize: 14,
     color: Colors.text.secondary,
+    textAlign: 'center',
   },
   form: {
     width: '100%',
+    paddingHorizontal: 8,
+  },
+  inputContainer: {
+    marginBottom: 24,
+  },
+  inputLabel: {
+    fontSize: 14,
+    color: Colors.text.secondary,
+    marginBottom: 8,
+    marginLeft: 4,
   },
   input: {
-    borderWidth: 1,
-    borderColor: Colors.border,
-    borderRadius: 8,
-    padding: 15,
-    marginBottom: 15,
+    backgroundColor: Colors.input.background,
+    borderRadius: 16,
+    paddingHorizontal: 20,
+    paddingVertical: 18,
     fontSize: 16,
-    backgroundColor: Colors.surface,
+    color: Colors.text.primary,
+    borderWidth: 1,
+    borderColor: 'transparent',
+    minHeight: theme.form.inputHeight,
   },
   button: {
     backgroundColor: Colors.button.primary,
-    padding: 15,
-    borderRadius: 8,
+    borderRadius: theme.form.buttonRadius,
+    paddingVertical: 14,
     alignItems: 'center',
-    marginTop: 10,
-    marginBottom: 20,
+    marginTop: 20,
+    marginBottom: 32,
+    minHeight: theme.form.buttonHeight,
+    justifyContent: 'center',
   },
   buttonDisabled: {
     opacity: 0.6,
   },
   buttonText: {
-    color: Colors.text.inverse,
+    color: Colors.text.primary,
     fontSize: 16,
     fontWeight: '600',
+  },
+  linkContainer: {
+    alignItems: 'center',
+    marginBottom: 16,
   },
   linkText: {
     textAlign: 'center',
