@@ -23,11 +23,14 @@ import { passwordService, Password } from '../services/passwordService';
 import { AddPasswordModal } from './AddPasswordModal';
 import { EditPasswordModal } from './EditPasswordModal';
 import { PasswordItem } from './PasswordItem';
+import { CustomAlert } from './CustomAlert';
+import { useCustomAlert } from '../hooks/useCustomAlert';
 import Colors from '../constants/Colors';
 
 export const HomeScreen: React.FC = () => {
   const { user } = useAuth();
   const { isBiometricEnabled, setBiometricEnabled } = useBiometricAuth();
+  const { alertState, showAlert, hideAlert, showSuccess, showError, showConfirm, showDestructiveConfirm } = useCustomAlert();
   
   // Password management state
   const [passwords, setPasswords] = useState<Password[]>([]);
@@ -92,7 +95,7 @@ export const HomeScreen: React.FC = () => {
     if (result.success && result.passwords) {
       setPasswords(result.passwords);
     } else {
-      Alert.alert('Error', result.error || 'Failed to load passwords');
+      showError('Error', result.error || 'Failed to load passwords');
     }
     setLoading(false);
   };
@@ -112,10 +115,10 @@ export const HomeScreen: React.FC = () => {
     const result = await passwordService.deletePassword(passwordId);
     
     if (result.success) {
-      Alert.alert('Success', 'Password deleted successfully');
+      showSuccess('Success', 'Password deleted successfully');
       loadPasswords();
     } else {
-      Alert.alert('Error', result.error || 'Failed to delete password');
+      showError('Error', result.error || 'Failed to delete password');
     }
   };
 
@@ -124,11 +127,12 @@ export const HomeScreen: React.FC = () => {
   };
 
   const handleProfilePress = () => {
-    Alert.alert(
-      'Profile',
-      'Profile page functionality coming soon!',
-      [{ text: 'OK' }]
-    );
+    showAlert({
+      title: 'Profile',
+      message: 'Profile page functionality coming soon!',
+      icon: 'person-circle',
+      buttons: [{ text: 'OK', style: 'default' }],
+    });
   };
 
   const handleTabPress = (tab: string) => {
@@ -136,22 +140,18 @@ export const HomeScreen: React.FC = () => {
   };
 
   const handleLogout = async () => {
-    Alert.alert(
+    showDestructiveConfirm(
       'Logout',
       'Are you sure you want to logout?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Logout',
-          style: 'destructive',
-          onPress: async () => {
-            const result = await authService.signOut();
-            if (!result.success) {
-              Alert.alert('Error', result.error);
-            }
-          },
-        },
-      ]
+      async () => {
+        const result = await authService.signOut();
+        if (!result.success) {
+          showError('Error', result.error);
+        }
+      },
+      undefined,
+      'Logout',
+      'Cancel'
     );
   };
 
@@ -161,10 +161,9 @@ export const HomeScreen: React.FC = () => {
       const isAvailable = await biometricAuthService.isAvailable();
       
       if (!isAvailable) {
-        Alert.alert(
+        showError(
           'Biometric Authentication Unavailable',
-          'Biometric authentication is not available on this device or not set up. Please set up fingerprint, Face ID, or other biometric authentication in your device settings.',
-          [{ text: 'OK' }]
+          'Biometric authentication is not available on this device or not set up. Please set up fingerprint, Face ID, or other biometric authentication in your device settings.'
         );
         return;
       }
@@ -174,26 +173,22 @@ export const HomeScreen: React.FC = () => {
       
       if (result.success) {
         setBiometricEnabled(true);
-        Alert.alert('Success', 'Biometric authentication has been enabled for your account.');
+        showSuccess('Success', 'Biometric authentication has been enabled for your account.');
       } else {
-        Alert.alert('Authentication Failed', result.error || 'Please try again');
+        showError('Authentication Failed', result.error || 'Please try again');
       }
     } else {
       // Disable biometric auth
-      Alert.alert(
+      showConfirm(
         'Disable Biometric Authentication',
         'Are you sure you want to disable biometric authentication?',
-        [
-          { text: 'Cancel', style: 'cancel' },
-          {
-            text: 'Disable',
-            style: 'destructive',
-            onPress: () => {
-              setBiometricEnabled(false);
-              Alert.alert('Disabled', 'Biometric authentication has been disabled.');
-            },
-          },
-        ]
+        () => {
+          setBiometricEnabled(false);
+          showSuccess('Disabled', 'Biometric authentication has been disabled.');
+        },
+        undefined,
+        'Disable',
+        'Cancel'
       );
     }
   };
@@ -378,6 +373,16 @@ export const HomeScreen: React.FC = () => {
           onSuccess={handlePasswordSuccess}
           password={selectedPassword}
           userId={user?.uid || ''}
+        />
+
+        <CustomAlert
+          visible={alertState.visible}
+          title={alertState.options.title}
+          message={alertState.options.message}
+          buttons={alertState.options.buttons || []}
+          onClose={hideAlert}
+          icon={alertState.options.icon}
+          iconColor={alertState.options.iconColor}
         />
       </SafeAreaView>
     </GestureHandlerRootView>

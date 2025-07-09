@@ -12,6 +12,8 @@ import {
   Platform,
 } from 'react-native';
 import { passwordService, Password, PasswordInput } from '../services/passwordService';
+import { useCustomAlert } from '../hooks/useCustomAlert';
+import { CustomAlert } from './CustomAlert';
 import Colors from '../constants/Colors';
 
 interface EditPasswordModalProps {
@@ -36,6 +38,7 @@ export const EditPasswordModal: React.FC<EditPasswordModalProps> = ({
     notes: password?.notes || '',
   });
   const [loading, setLoading] = useState(false);
+  const { alertState, hideAlert, showSuccess, showError } = useCustomAlert();
 
   React.useEffect(() => {
     if (password) {
@@ -50,12 +53,12 @@ export const EditPasswordModal: React.FC<EditPasswordModalProps> = ({
 
   const handleSubmit = async () => {
     if (!formData.service.trim() || !formData.account.trim() || !formData.password.trim()) {
-      Alert.alert('Error', 'Please fill in all required fields');
+      showError('Error', 'Please fill in all required fields');
       return;
     }
 
     if (!password?.id) {
-      Alert.alert('Error', 'Password ID not found');
+      showError('Error', 'Password ID not found');
       return;
     }
 
@@ -64,11 +67,12 @@ export const EditPasswordModal: React.FC<EditPasswordModalProps> = ({
     setLoading(false);
 
     if (result.success) {
-      Alert.alert('Success', 'Password updated successfully');
-      onSuccess();
-      onClose();
+      showSuccess('Success', 'Password updated successfully', () => {
+        onSuccess();
+        onClose();
+      });
     } else {
-      Alert.alert('Error', result.error || 'Failed to update password');
+      showError('Error', result.error || 'Failed to update password');
     }
   };
 
@@ -151,6 +155,16 @@ export const EditPasswordModal: React.FC<EditPasswordModalProps> = ({
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
+      
+      <CustomAlert
+        visible={alertState.visible}
+        title={alertState.options.title}
+        message={alertState.options.message}
+        buttons={alertState.options.buttons || []}
+        onClose={hideAlert}
+        icon={alertState.options.icon}
+        iconColor={alertState.options.iconColor}
+      />
     </Modal>
   );
 };

@@ -14,6 +14,8 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { passwordService, PasswordInput } from '../services/passwordService';
+import { useCustomAlert } from '../hooks/useCustomAlert';
+import { CustomAlert } from './CustomAlert';
 import Colors from '../constants/Colors';
 
 interface AddPasswordModalProps {
@@ -36,10 +38,11 @@ export const AddPasswordModal: React.FC<AddPasswordModalProps> = ({
     notes: '',
   });
   const [loading, setLoading] = useState(false);
+  const { alertState, hideAlert, showSuccess, showError } = useCustomAlert();
 
   const handleSubmit = async () => {
     if (!formData.service.trim() || !formData.account.trim() || !formData.password.trim()) {
-      Alert.alert('Error', 'Please fill in all required fields');
+      showError('Error', 'Please fill in all required fields');
       return;
     }
 
@@ -48,12 +51,13 @@ export const AddPasswordModal: React.FC<AddPasswordModalProps> = ({
     setLoading(false);
 
     if (result.success) {
-      Alert.alert('Success', 'Password saved successfully');
-      setFormData({ service: '', account: '', password: '', notes: '' });
-      onSuccess();
-      onClose();
+      showSuccess('Success', 'Password saved successfully', () => {
+        setFormData({ service: '', account: '', password: '', notes: '' });
+        onSuccess();
+        onClose();
+      });
     } else {
-      Alert.alert('Error', result.error || 'Failed to save password');
+      showError('Error', result.error || 'Failed to save password');
     }
   };
 
@@ -147,6 +151,16 @@ export const AddPasswordModal: React.FC<AddPasswordModalProps> = ({
           </ScrollView>
         </KeyboardAvoidingView>
       </SafeAreaView>
+      
+      <CustomAlert
+        visible={alertState.visible}
+        title={alertState.options.title}
+        message={alertState.options.message}
+        buttons={alertState.options.buttons || []}
+        onClose={hideAlert}
+        icon={alertState.options.icon}
+        iconColor={alertState.options.iconColor}
+      />
     </Modal>
   );
 };

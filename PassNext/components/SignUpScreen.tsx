@@ -13,6 +13,8 @@ import {
   SafeAreaView,
 } from 'react-native';
 import { authService } from '../services/authService';
+import { useCustomAlert } from '../hooks/useCustomAlert';
+import { CustomAlert } from './CustomAlert';
 import Colors from '../constants/Colors';
 import { theme } from '../constants/Theme';
 
@@ -25,15 +27,16 @@ export const SignUpScreen: React.FC<SignUpScreenProps> = ({ onNavigateToLogin })
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const { alertState, hideAlert, showSuccess, showError } = useCustomAlert();
 
   const handleSignUp = async () => {
     if (!name || !email || !password) {
-      Alert.alert('Error', 'Please fill in all fields');
+      showError('Error', 'Please fill in all fields');
       return;
     }
 
     if (password.length < 6) {
-      Alert.alert('Error', 'Password must be at least 6 characters long');
+      showError('Error', 'Password must be at least 6 characters long');
       return;
     }
 
@@ -42,9 +45,9 @@ export const SignUpScreen: React.FC<SignUpScreenProps> = ({ onNavigateToLogin })
     setLoading(false);
 
     if (result.success) {
-      Alert.alert('Success', 'Account created successfully!');
+      showSuccess('Success', 'Account created successfully!');
     } else {
-      Alert.alert('Sign Up Failed', result.error);
+      showError('Sign Up Failed', result.error);
     }
   };
 
@@ -125,6 +128,16 @@ export const SignUpScreen: React.FC<SignUpScreenProps> = ({ onNavigateToLogin })
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
+      
+      <CustomAlert
+        visible={alertState.visible}
+        title={alertState.options.title}
+        message={alertState.options.message}
+        buttons={alertState.options.buttons || []}
+        onClose={hideAlert}
+        icon={alertState.options.icon}
+        iconColor={alertState.options.iconColor}
+      />
     </SafeAreaView>
   );
 };

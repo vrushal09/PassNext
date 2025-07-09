@@ -13,6 +13,8 @@ import {
   ScrollView,
 } from 'react-native';
 import { authService } from '../services/authService';
+import { useCustomAlert } from '../hooks/useCustomAlert';
+import { CustomAlert } from './CustomAlert';
 import Colors from '../constants/Colors';
 import { theme } from '../constants/Theme';
 
@@ -24,10 +26,11 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onNavigateToSignUp }) 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const { alertState, hideAlert, showSuccess, showError } = useCustomAlert();
 
   const handleLogin = async () => {
     if (!email || !password) {
-      Alert.alert('Error', 'Please fill in all fields');
+      showError('Error', 'Please fill in all fields');
       return;
     }
 
@@ -36,21 +39,21 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onNavigateToSignUp }) 
     setLoading(false);
 
     if (!result.success) {
-      Alert.alert('Login Failed', result.error);
+      showError('Login Failed', result.error);
     }
   };
 
   const handleForgotPassword = async () => {
     if (!email) {
-      Alert.alert('Error', 'Please enter your email address first');
+      showError('Error', 'Please enter your email address first');
       return;
     }
 
     const result = await authService.resetPassword(email);
     if (result.success) {
-      Alert.alert('Success', 'Password reset email sent!');
+      showSuccess('Success', 'Password reset email sent!');
     } else {
-      Alert.alert('Error', result.error);
+      showError('Error', result.error);
     }
   };
 
@@ -123,6 +126,16 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onNavigateToSignUp }) 
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
+      
+      <CustomAlert
+        visible={alertState.visible}
+        title={alertState.options.title}
+        message={alertState.options.message}
+        buttons={alertState.options.buttons || []}
+        onClose={hideAlert}
+        icon={alertState.options.icon}
+        iconColor={alertState.options.iconColor}
+      />
     </SafeAreaView>
   );
 };

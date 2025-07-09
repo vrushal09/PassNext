@@ -14,6 +14,8 @@ import { PanGestureHandler, State } from 'react-native-gesture-handler';
 import { Ionicons } from '@expo/vector-icons';
 import { Password } from '../services/passwordService';
 import { biometricAuthService } from '../services/biometricAuthService';
+import { useCustomAlert } from '../hooks/useCustomAlert';
+import { CustomAlert } from './CustomAlert';
 import Colors from '../constants/Colors';
 
 interface PasswordItemProps {
@@ -30,6 +32,7 @@ export const PasswordItem: React.FC<PasswordItemProps> = ({
   const translateX = useRef(new Animated.Value(0)).current;
   const { width: screenWidth } = Dimensions.get('window');
   const swipeThreshold = 100;
+  const { alertState, hideAlert, showSuccess, showError, showDestructiveConfirm } = useCustomAlert();
 
   const formatDate = (date: Date) => {
     return date.toLocaleDateString('en-US', {
@@ -42,9 +45,9 @@ export const PasswordItem: React.FC<PasswordItemProps> = ({
   const copyToClipboard = async (text: string, label: string) => {
     try {
       await Clipboard.setString(text);
-      Alert.alert('Copied', `${label} copied to clipboard`);
+      showSuccess('Copied', `${label} copied to clipboard`);
     } catch (error) {
-      Alert.alert('Error', 'Failed to copy to clipboard');
+      showError('Error', 'Failed to copy to clipboard');
     }
   };
 
@@ -60,7 +63,7 @@ export const PasswordItem: React.FC<PasswordItemProps> = ({
       if (result.success) {
         await copyToClipboard(password.password, 'Password');
       } else {
-        Alert.alert(
+        showError(
           'Authentication Failed', 
           result.error || 'Biometric authentication failed. Please try again.'
         );
@@ -182,37 +185,29 @@ export const PasswordItem: React.FC<PasswordItemProps> = ({
       );
       
       if (result.success) {
-        Alert.alert(
+        showDestructiveConfirm(
           'Delete Password',
           `Are you sure you want to delete the password for ${password.service}?`,
-          [
-            { text: 'Cancel', style: 'cancel' },
-            {
-              text: 'Delete',
-              style: 'destructive',
-              onPress: () => onDelete(password.id!),
-            },
-          ]
+          () => onDelete(password.id!),
+          undefined,
+          'Delete',
+          'Cancel'
         );
       } else {
-        Alert.alert(
+        showError(
           'Authentication Failed', 
           result.error || 'Biometric authentication failed. Please try again.'
         );
       }
     } else {
       // If biometric auth is not available, show delete confirmation directly
-      Alert.alert(
+      showDestructiveConfirm(
         'Delete Password',
         `Are you sure you want to delete the password for ${password.service}?`,
-        [
-          { text: 'Cancel', style: 'cancel' },
-          {
-            text: 'Delete',
-            style: 'destructive',
-            onPress: () => onDelete(password.id!),
-          },
-        ]
+        () => onDelete(password.id!),
+        undefined,
+        'Delete',
+        'Cancel'
       );
     }
   };
@@ -317,6 +312,16 @@ export const PasswordItem: React.FC<PasswordItemProps> = ({
           </Animated.View>
         </Animated.View>
       </PanGestureHandler>
+      
+      <CustomAlert
+        visible={alertState.visible}
+        title={alertState.options.title}
+        message={alertState.options.message}
+        buttons={alertState.options.buttons || []}
+        onClose={hideAlert}
+        icon={alertState.options.icon}
+        iconColor={alertState.options.iconColor}
+      />
     </View>
   );
 };
