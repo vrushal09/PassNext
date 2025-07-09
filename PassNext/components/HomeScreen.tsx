@@ -10,6 +10,8 @@ import {
   FlatList,
   RefreshControl,
   TextInput,
+  StatusBar,
+  Platform,
 } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { Ionicons } from '@expo/vector-icons';
@@ -199,6 +201,7 @@ export const HomeScreen: React.FC = () => {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaView style={styles.container}>
+        <StatusBar barStyle="light-content" backgroundColor={Colors.background} translucent={false} />
         <View style={styles.content}>
           {currentTab === 'home' && (
             <>
@@ -346,14 +349,14 @@ export const HomeScreen: React.FC = () => {
             style={[styles.navItem, currentTab === 'home' && styles.activeNavItem]}
             onPress={() => handleTabPress('home')}
           >
-            <Ionicons name="apps" size={24} color={currentTab === 'home' ? Colors.nav.active : Colors.nav.inactive} />
+            <Ionicons name="apps" size={24} color={currentTab === 'home' ? Colors.primary : Colors.text.secondary} />
             <Text style={currentTab === 'home' ? styles.activeNavText : styles.navText}>Home</Text>
           </TouchableOpacity>
           <TouchableOpacity 
             style={[styles.navItem, currentTab === 'security' && styles.activeNavItem]}
             onPress={() => handleTabPress('security')}
           >
-            <Ionicons name="shield-checkmark" size={24} color={currentTab === 'security' ? Colors.nav.active : Colors.nav.inactive} />
+            <Ionicons name="shield-checkmark" size={24} color={currentTab === 'security' ? Colors.primary : Colors.text.secondary} />
             <Text style={currentTab === 'security' ? styles.activeNavText : styles.navText}>Security</Text>
           </TouchableOpacity>
         </View>
@@ -385,7 +388,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Colors.background,
-    paddingTop: 10,
+    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
   },
   content: {
     flex: 1,
@@ -447,12 +450,13 @@ const styles = StyleSheet.create({
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Colors.surface,
-    borderRadius: 24,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
+    backgroundColor: Colors.input.background,
+    borderRadius: 16,
+    paddingHorizontal: 20,
+    paddingVertical: 18,
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: 'transparent',
+    minHeight: 56,
   },
   searchIcon: {
     marginRight: 12,
@@ -464,8 +468,9 @@ const styles = StyleSheet.create({
     fontWeight: '400',
   },
   searchMenuButton: {
-    padding: 4,
+    padding: 8,
     marginLeft: 8,
+    borderRadius: 8,
   },
   mostUsedHeader: {
     flexDirection: 'row',
@@ -499,25 +504,25 @@ const styles = StyleSheet.create({
     color: Colors.text.primary,
   },
   securitySection: {
-    backgroundColor: Colors.background,
-    marginHorizontal: 16,
+    backgroundColor: Colors.input.background,
+    marginHorizontal: 20,
     borderRadius: 16,
-    padding: 16,
+    padding: 20,
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: 'transparent',
   },
   securityItem: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingVertical: 16,
     borderBottomWidth: 1,
-    borderBottomColor: Colors.surface,
+    borderBottomColor: Colors.divider,
   },
   securityItemIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: Colors.surface,
+    width: 48,
+    height: 48,
+    borderRadius: 16,
+    backgroundColor: Colors.background,
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 16,
@@ -563,9 +568,12 @@ const styles = StyleSheet.create({
   },
   addFirstButton: {
     backgroundColor: Colors.primary,
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderRadius: 20,
+    paddingHorizontal: 32,
+    paddingVertical: 16,
+    borderRadius: 16,
+    minHeight: 56,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   addFirstButtonText: {
     color: Colors.text.inverse,
@@ -574,11 +582,11 @@ const styles = StyleSheet.create({
   },
   floatingAddButton: {
     position: 'absolute',
-    bottom: 20,
+    bottom: 90,
     right: 20,
     width: 56,
     height: 56,
-    borderRadius: 28,
+    borderRadius: 16,
     backgroundColor: Colors.primary,
     justifyContent: 'center',
     alignItems: 'center',
@@ -593,11 +601,11 @@ const styles = StyleSheet.create({
   },
   bottomNav: {
     flexDirection: 'row',
-    backgroundColor: Colors.nav.background,
-    paddingVertical: 8,
+    backgroundColor: Colors.background,
+    paddingVertical: 12,
     paddingHorizontal: 40,
     borderTopWidth: 1,
-    borderTopColor: Colors.nav.border,
+    borderTopColor: Colors.divider,
     justifyContent: 'space-around',
   },
   navItem: {
@@ -608,17 +616,17 @@ const styles = StyleSheet.create({
   },
   activeNavItem: {
     borderTopWidth: 2,
-    borderTopColor: Colors.nav.active,
+    borderTopColor: Colors.primary,
   },
   navText: {
     fontSize: 12,
-    color: Colors.nav.inactive,
+    color: Colors.text.secondary,
     marginTop: 4,
     fontWeight: '400',
   },
   activeNavText: {
     fontSize: 12,
-    color: Colors.nav.active,
+    color: Colors.primary,
     marginTop: 4,
     fontWeight: '500',
   },

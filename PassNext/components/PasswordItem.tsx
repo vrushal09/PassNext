@@ -323,13 +323,13 @@ export const PasswordItem: React.FC<PasswordItemProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    marginHorizontal: 16,
-    marginBottom: 12,
+    marginHorizontal: 20,
+    marginBottom: 16,
     borderRadius: 16,
     overflow: 'hidden',
-    backgroundColor: Colors.background,
+    backgroundColor: Colors.input.background,
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: 'transparent',
   },
   swipeWrapper: {
     position: 'relative',
@@ -391,7 +391,7 @@ const styles = StyleSheet.create({
   serviceIcon: {
     width: 48,
     height: 48,
-    borderRadius: 24,
+    borderRadius: 16,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 16,
@@ -437,10 +437,10 @@ const styles = StyleSheet.create({
   fingerprintButton: {
     padding: 12,
     marginLeft: 8,
-    borderRadius: 12,
-    backgroundColor: Colors.surface,
+    borderRadius: 16,
+    backgroundColor: Colors.background,
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: 'transparent',
   },
   actionText: {
     color: Colors.text.inverse,
