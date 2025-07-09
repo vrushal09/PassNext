@@ -1,4 +1,5 @@
 import CryptoJS from 'crypto-js';
+import * as Crypto from 'expo-crypto';
 
 export class EncryptionService {
   private static instance: EncryptionService;
@@ -14,16 +15,17 @@ export class EncryptionService {
 
   /**
    * Generate a unique encryption key for each user based on their UID
-   * In production, consider using a more robust key derivation function
    */
   private generateUserKey(userId: string): string {
-    // Using PBKDF2 for key derivation
-    const salt = 'PassNext-Salt-2025'; // In production, use a random salt per user
-    const key = CryptoJS.PBKDF2(userId, salt, {
-      keySize: 256 / 32,
-      iterations: 10000
-    });
-    return key.toString();
+    // Using a simpler approach that works reliably in React Native
+    const salt = 'PassNext-Salt-2025-' + userId.substring(0, 8);
+    
+    // Use a simpler key derivation that doesn't rely on native crypto
+    const combinedString = userId + salt + 'PassNext-Key-Material';
+    const hash = CryptoJS.SHA256(combinedString);
+    
+    // Create a 256-bit key from the hash
+    return hash.toString();
   }
 
   /**
@@ -31,8 +33,15 @@ export class EncryptionService {
    */
   public encrypt(data: string, userId: string): string {
     try {
+      if (!data || !userId) {
+        throw new Error('Data and userId are required for encryption');
+      }
+      
       const key = this.generateUserKey(userId);
+      
+      // Use the simplest AES encryption method that doesn't require random IV generation
       const encrypted = CryptoJS.AES.encrypt(data, key).toString();
+      
       return encrypted;
     } catch (error) {
       console.error('Encryption error:', error);
@@ -76,7 +85,13 @@ export class EncryptionService {
    */
   public decrypt(encryptedData: string, userId: string): string {
     try {
+      if (!encryptedData || !userId) {
+        throw new Error('Encrypted data and userId are required for decryption');
+      }
+      
       const key = this.generateUserKey(userId);
+      
+      // Use the simplest AES decryption method
       const decrypted = CryptoJS.AES.decrypt(encryptedData, key);
       const decryptedString = decrypted.toString(CryptoJS.enc.Utf8);
       
