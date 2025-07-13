@@ -7,30 +7,52 @@ import {
   Alert,
   SafeAreaView,
   ActivityIndicator,
+  AppState,
 } from 'react-native';
 import { biometricAuthService } from '../services/biometricAuthService';
 import Colors from '../constants/Colors';
 
 interface BiometricAuthScreenProps {
   onSuccess: () => void;
-  onSkip: () => void;
+  onFallback: () => void;
 }
 
 export const BiometricAuthScreen: React.FC<BiometricAuthScreenProps> = ({
   onSuccess,
-  onSkip,
+  onFallback,
 }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [isAuthenticating, setIsAuthenticating] = useState(false);
   const [biometricTypes, setBiometricTypes] = useState<string[]>([]);
   const [isAvailable, setIsAvailable] = useState(false);
+  const [retryCount, setRetryCount] = useState(0);
 
   useEffect(() => {
-    checkBiometricAvailability();
+    initializeBiometricAuth();
   }, []);
 
-  const checkBiometricAvailability = async () => {
+  // Handle app state changes - re-trigger biometric auth when app comes back to foreground
+  useEffect(() => {
+    const handleAppStateChange = (nextAppState: string) => {
+      if (nextAppState === 'active' && !isAuthenticating && !isLoading) {
+        // Re-trigger biometric auth when app becomes active again
+        setTimeout(() => {
+          handleBiometricAuth();
+        }, 500);
+      }
+    };
+
+    const subscription = AppState.addEventListener('change', handleAppStateChange);
+    return () => subscription?.remove();
+  }, [isAuthenticating, isLoading]);
+
+  const initializeBiometricAuth = async () => {
     try {
+      setIsLoading(true);
+      
+      // Add a small delay to ensure the component is properly mounted
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
       const available = await biometricAuthService.isAvailable();
       setIsAvailable(available);
 
@@ -38,16 +60,43 @@ export const BiometricAuthScreen: React.FC<BiometricAuthScreenProps> = ({
         const types = await biometricAuthService.getAvailableTypes();
         const typeNames = biometricAuthService.getAuthTypeNames(types);
         setBiometricTypes(typeNames);
+        
+        setIsLoading(false);
+        
+        // Auto-trigger biometric authentication immediately
+        setTimeout(() => {
+          handleBiometricAuth();
+        }, 300);
+      } else {
+        setIsLoading(false);
+        // If biometric is not available, fall back to password authentication
+        Alert.alert(
+          'Biometric Authentication Unavailable',
+          'Biometric authentication is not available. Please use your device passcode.',
+          [
+            { text: 'OK', onPress: onFallback }
+          ]
+        );
       }
     } catch (error) {
-      console.error('Error checking biometric availability:', error);
-      setIsAvailable(false);
-    } finally {
+      console.error('Error initializing biometric authentication:', error);
       setIsLoading(false);
+      setIsAvailable(false);
+      
+      // On error, also fallback to passcode
+      Alert.alert(
+        'Authentication Error',
+        'There was an error with biometric authentication. Please use your device passcode.',
+        [
+          { text: 'OK', onPress: onFallback }
+        ]
+      );
     }
   };
 
   const handleBiometricAuth = async () => {
+    if (isAuthenticating) return;
+    
     setIsAuthenticating(true);
     
     try {
@@ -59,23 +108,50 @@ export const BiometricAuthScreen: React.FC<BiometricAuthScreenProps> = ({
       if (result.success) {
         onSuccess();
       } else {
-        Alert.alert(
-          'Authentication Failed',
-          result.error || 'Please try again',
-          [
-            { text: 'Try Again', onPress: handleBiometricAuth },
-            { text: 'Skip', onPress: onSkip, style: 'cancel' }
-          ]
-        );
+        // If authentication fails, show retry options
+        setRetryCount(prev => prev + 1);
+        
+        // Handle different error types
+        const errorString = result.error || 'Authentication failed';
+        
+        if (errorString.includes('cancelled')) {
+          // User cancelled - show options
+          Alert.alert(
+            'Authentication Cancelled',
+            'Please use biometric authentication or your device passcode to continue.',
+            [
+              { text: 'Try Again', onPress: () => handleBiometricAuth() },
+              { text: 'Use Passcode', onPress: onFallback }
+            ]
+          );
+        } else if (retryCount < 3) {
+          // Show retry options for other errors
+          Alert.alert(
+            'Authentication Failed',
+            errorString,
+            [
+              { text: 'Try Again', onPress: () => handleBiometricAuth() },
+              { text: 'Use Passcode', onPress: onFallback }
+            ]
+          );
+        } else {
+          // After 3 failed attempts, force passcode
+          Alert.alert(
+            'Too Many Attempts',
+            'Please use your device passcode to continue.',
+            [
+              { text: 'OK', onPress: onFallback }
+            ]
+          );
+        }
       }
     } catch (error) {
       console.error('Biometric authentication error:', error);
       Alert.alert(
-        'Error',
-        'An unexpected error occurred. Please try again.',
+        'Authentication Error',
+        'An unexpected error occurred. Please use your device passcode.',
         [
-          { text: 'Try Again', onPress: handleBiometricAuth },
-          { text: 'Skip', onPress: onSkip, style: 'cancel' }
+          { text: 'OK', onPress: onFallback }
         ]
       );
     } finally {
@@ -83,23 +159,12 @@ export const BiometricAuthScreen: React.FC<BiometricAuthScreenProps> = ({
     }
   };
 
-  const handleSkip = () => {
-    Alert.alert(
-      'Skip Biometric Authentication',
-      'Are you sure you want to skip biometric authentication? You can enable it later in settings.',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        { text: 'Skip', onPress: onSkip, style: 'destructive' }
-      ]
-    );
-  };
-
   if (isLoading) {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={Colors.primary} />
-          <Text style={styles.loadingText}>Checking biometric availability...</Text>
+          <Text style={styles.loadingText}>Initializing biometric authentication...</Text>
         </View>
       </SafeAreaView>
     );
@@ -113,13 +178,13 @@ export const BiometricAuthScreen: React.FC<BiometricAuthScreenProps> = ({
             <Text style={styles.icon}>🔒</Text>
           </View>
           
-          <Text style={styles.title}>Biometric Authentication Unavailable</Text>
+          <Text style={styles.title}>Biometric Authentication Required</Text>
           <Text style={styles.subtitle}>
-            Biometric authentication is not available on this device or not set up.
+            Please set up biometric authentication on your device to continue.
           </Text>
           
-          <TouchableOpacity style={styles.button} onPress={onSkip}>
-            <Text style={styles.buttonText}>Continue</Text>
+          <TouchableOpacity style={styles.button} onPress={onFallback}>
+            <Text style={styles.buttonText}>Use Passcode</Text>
           </TouchableOpacity>
         </View>
       </SafeAreaView>
@@ -154,8 +219,8 @@ export const BiometricAuthScreen: React.FC<BiometricAuthScreenProps> = ({
           )}
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.skipButton} onPress={handleSkip}>
-          <Text style={styles.skipButtonText}>Skip for now</Text>
+        <TouchableOpacity style={styles.fallbackButton} onPress={onFallback}>
+          <Text style={styles.fallbackButtonText}>Use Passcode</Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>
@@ -233,6 +298,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   skipButtonText: {
+    color: Colors.text.secondary,
+    fontSize: 16,
+  },
+  fallbackButton: {
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+  },
+  fallbackButtonText: {
     color: Colors.text.secondary,
     fontSize: 16,
   },

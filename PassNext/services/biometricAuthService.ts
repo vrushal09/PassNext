@@ -13,7 +13,9 @@ export const biometricAuthService = {
     try {
       const hasHardware = await LocalAuthentication.hasHardwareAsync();
       const isEnrolled = await LocalAuthentication.isEnrolledAsync();
-      return hasHardware && isEnrolled;
+      const securityLevel = await LocalAuthentication.getEnrolledLevelAsync();
+      
+      return hasHardware && isEnrolled && securityLevel !== LocalAuthentication.SecurityLevel.NONE;
     } catch (error) {
       console.error('Error checking biometric availability:', error);
       return false;
@@ -23,7 +25,8 @@ export const biometricAuthService = {
   // Get available authentication types
   getAvailableTypes: async (): Promise<LocalAuthentication.AuthenticationType[]> => {
     try {
-      return await LocalAuthentication.supportedAuthenticationTypesAsync();
+      const types = await LocalAuthentication.supportedAuthenticationTypesAsync();
+      return types || [];
     } catch (error) {
       console.error('Error getting biometric types:', error);
       return [];
@@ -50,7 +53,7 @@ export const biometricAuthService = {
   // Authenticate with biometrics
   authenticate: async (promptMessage?: string): Promise<BiometricAuthResult> => {
     try {
-      // Check if biometric auth is available
+      // Double check availability before attempting authentication
       const isAvailable = await biometricAuthService.isAvailable();
       if (!isAvailable) {
         return {
@@ -64,12 +67,13 @@ export const biometricAuthService = {
       const typeNames = biometricAuthService.getAuthTypeNames(types);
       const authTypeName = typeNames[0] || 'Biometric';
 
-      // Perform authentication
+      // Perform authentication with improved options
       const result = await LocalAuthentication.authenticateAsync({
         promptMessage: promptMessage || `Use ${authTypeName} to access the app`,
         disableDeviceFallback: false, // Allow PIN/Password fallback
         cancelLabel: 'Cancel',
         fallbackLabel: 'Use PIN/Password',
+        requireConfirmation: false, // Don't require confirmation after successful auth
       });
 
       if (result.success) {
@@ -78,11 +82,27 @@ export const biometricAuthService = {
           biometricType: authTypeName
         };
       } else {
+        // Handle different error types
         let errorMessage = 'Authentication failed';
         
-        // Provide user-friendly error messages
         if (result.error) {
-          errorMessage = `Authentication failed: ${result.error}`;
+          // Convert error to string for comparison
+          const errorString = String(result.error);
+          if (errorString.includes('UserCancel')) {
+            errorMessage = 'Authentication was cancelled';
+          } else if (errorString.includes('UserFallback')) {
+            errorMessage = 'Fallback authentication was used';
+          } else if (errorString.includes('SystemCancel')) {
+            errorMessage = 'Authentication was cancelled by the system';
+          } else if (errorString.includes('PasscodeNotSet')) {
+            errorMessage = 'Device passcode is not set';
+          } else if (errorString.includes('BiometricNotAvailable')) {
+            errorMessage = 'Biometric authentication is not available';
+          } else if (errorString.includes('BiometricNotEnrolled')) {
+            errorMessage = 'No biometric authentication methods are enrolled';
+          } else {
+            errorMessage = `Authentication failed: ${result.error}`;
+          }
         }
 
         return {

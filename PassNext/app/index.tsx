@@ -12,8 +12,8 @@ export default function Index() {
   const { 
     isBiometricRequired, 
     setBiometricAuthenticated, 
-    skipBiometric,
-    setBiometricEnabled
+    setBiometricEnabled,
+    resetBiometricAuth
   } = useBiometricAuth();
 
   // Wait for Firebase Auth to initialize
@@ -37,9 +37,12 @@ export default function Index() {
       <BiometricAuthScreen
         onSuccess={() => {
           setBiometricAuthenticated(true);
-          setBiometricEnabled(true);
         }}
-        onSkip={skipBiometric}
+        onFallback={() => {
+          // Use device passcode - disable biometric and continue
+          setBiometricEnabled(false);
+          setBiometricAuthenticated(true);
+        }}
       />
     );
   }
