@@ -14,12 +14,12 @@ import { biometricAuthService } from '../services/biometricAuthService';
 
 interface BiometricAuthScreenProps {
   onSuccess: () => void;
-  onFallback: () => void;
+  onDisableBiometric: () => void;
 }
 
 export const BiometricAuthScreen: React.FC<BiometricAuthScreenProps> = ({
   onSuccess,
-  onFallback,
+  onDisableBiometric,
 }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [isAuthenticating, setIsAuthenticating] = useState(false);
@@ -69,12 +69,12 @@ export const BiometricAuthScreen: React.FC<BiometricAuthScreenProps> = ({
         }, 300);
       } else {
         setIsLoading(false);
-        // If biometric is not available, fall back to password authentication
+        // If biometric is not available, disable biometric authentication
         Alert.alert(
           'Biometric Authentication Unavailable',
-          'Biometric authentication is not available. Please use your device passcode.',
+          'Biometric authentication is not available on this device.',
           [
-            { text: 'OK', onPress: onFallback }
+            { text: 'OK', onPress: onDisableBiometric }
           ]
         );
       }
@@ -83,12 +83,12 @@ export const BiometricAuthScreen: React.FC<BiometricAuthScreenProps> = ({
       setIsLoading(false);
       setIsAvailable(false);
       
-      // On error, also fallback to passcode
+      // On error, also disable biometric authentication
       Alert.alert(
         'Authentication Error',
-        'There was an error with biometric authentication. Please use your device passcode.',
+        'There was an error with biometric authentication.',
         [
-          { text: 'OK', onPress: onFallback }
+          { text: 'OK', onPress: onDisableBiometric }
         ]
       );
     }
@@ -115,13 +115,13 @@ export const BiometricAuthScreen: React.FC<BiometricAuthScreenProps> = ({
         const errorString = result.error || 'Authentication failed';
         
         if (errorString.includes('cancelled')) {
-          // User cancelled - show options
+          // User cancelled - show retry option
           Alert.alert(
             'Authentication Cancelled',
-            'Please use biometric authentication or your device passcode to continue.',
+            'Please use biometric authentication to continue.',
             [
               { text: 'Try Again', onPress: () => handleBiometricAuth() },
-              { text: 'Use Passcode', onPress: onFallback }
+              { text: 'Disable Biometric', onPress: onDisableBiometric }
             ]
           );
         } else if (retryCount < 3) {
@@ -131,16 +131,16 @@ export const BiometricAuthScreen: React.FC<BiometricAuthScreenProps> = ({
             errorString,
             [
               { text: 'Try Again', onPress: () => handleBiometricAuth() },
-              { text: 'Use Passcode', onPress: onFallback }
+              { text: 'Disable Biometric', onPress: onDisableBiometric }
             ]
           );
         } else {
-          // After 3 failed attempts, force passcode
+          // After 3 failed attempts, disable biometric
           Alert.alert(
             'Too Many Attempts',
-            'Please use your device passcode to continue.',
+            'Please try again or disable biometric authentication.',
             [
-              { text: 'OK', onPress: onFallback }
+              { text: 'Disable Biometric', onPress: onDisableBiometric }
             ]
           );
         }
@@ -149,9 +149,9 @@ export const BiometricAuthScreen: React.FC<BiometricAuthScreenProps> = ({
       console.error('Biometric authentication error:', error);
       Alert.alert(
         'Authentication Error',
-        'An unexpected error occurred. Please use your device passcode.',
+        'An unexpected error occurred.',
         [
-          { text: 'OK', onPress: onFallback }
+          { text: 'OK', onPress: onDisableBiometric }
         ]
       );
     } finally {
@@ -183,8 +183,8 @@ export const BiometricAuthScreen: React.FC<BiometricAuthScreenProps> = ({
             Please set up biometric authentication on your device to continue.
           </Text>
           
-          <TouchableOpacity style={styles.button} onPress={onFallback}>
-            <Text style={styles.buttonText}>Use Passcode</Text>
+          <TouchableOpacity style={styles.button} onPress={onDisableBiometric}>
+            <Text style={styles.buttonText}>Continue Without Biometric</Text>
           </TouchableOpacity>
         </View>
       </SafeAreaView>
@@ -219,8 +219,8 @@ export const BiometricAuthScreen: React.FC<BiometricAuthScreenProps> = ({
           )}
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.fallbackButton} onPress={onFallback}>
-          <Text style={styles.fallbackButtonText}>Use Passcode</Text>
+        <TouchableOpacity style={styles.fallbackButton} onPress={onDisableBiometric}>
+          <Text style={styles.fallbackButtonText}>Continue Without Biometric</Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>

@@ -38,8 +38,8 @@ export default function Index() {
         onSuccess={() => {
           setBiometricAuthenticated(true);
         }}
-        onFallback={() => {
-          // Use device passcode - disable biometric and continue
+        onDisableBiometric={() => {
+          // Disable biometric authentication
           setBiometricEnabled(false);
           setBiometricAuthenticated(true);
         }}
