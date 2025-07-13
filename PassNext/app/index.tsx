@@ -1,11 +1,11 @@
-import 'react-native-get-random-values';
 import React from "react";
-import { View, Text, ActivityIndicator, StyleSheet } from "react-native";
+import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
+import 'react-native-get-random-values';
+import { AuthNavigator } from "../components/AuthNavigator";
+import { BiometricAuthScreen } from "../components/BiometricAuthScreen";
+import { HomeScreen } from "../components/HomeScreen";
 import { useAuth } from "../contexts/AuthContext";
 import { useBiometricAuth } from "../contexts/BiometricAuthContext";
-import { AuthNavigator } from "../components/AuthNavigator";
-import { HomeScreen } from "../components/HomeScreen";
-import { BiometricAuthScreen } from "../components/BiometricAuthScreen";
 
 export default function Index() {
   const { user, loading, initialized } = useAuth();

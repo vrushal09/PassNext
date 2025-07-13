@@ -1,5 +1,6 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import React, { createContext, useContext, useEffect, useState } from 'react';
+import { AppState, AppStateStatus } from 'react-native';
 import { useAuth } from './AuthContext';
 
 interface BiometricAuthContextType {
@@ -36,10 +37,30 @@ export const BiometricAuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const [isBiometricEnabled, setIsBiometricEnabled] = useState(false);
   const [isBiometricAuthenticated, setIsBiometricAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [appState, setAppState] = useState(AppState.currentState);
 
   useEffect(() => {
     loadBiometricSettings();
+    
+    // Listen for app state changes
+    const subscription = AppState.addEventListener('change', handleAppStateChange);
+    
+    return () => {
+      subscription?.remove();
+    };
   }, []);
+
+  const handleAppStateChange = (nextAppState: AppStateStatus) => {
+    if (appState.match(/inactive|background/) && nextAppState === 'active') {
+      // App came to foreground - require biometric auth again if enabled
+      if (isBiometricEnabled) {
+        setIsBiometricAuthenticated(false);
+        // Clear session to ensure fresh authentication
+        AsyncStorage.removeItem(BIOMETRIC_SESSION_KEY).catch(console.error);
+      }
+    }
+    setAppState(nextAppState);
+  };
 
   // Reset biometric auth when user logs out
   useEffect(() => {
@@ -59,14 +80,17 @@ export const BiometricAuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
       setIsBiometricEnabled(enabled === 'true');
       
-      // Check if we have a valid session (within last 24 hours)
+      // Check if we have a valid session (within last 5 minutes for app foreground)
       if (session) {
         const sessionTime = parseInt(session);
         const now = Date.now();
-        const twentyFourHours = 24 * 60 * 60 * 1000;
+        const fiveMinutes = 5 * 60 * 1000; // 5 minutes in milliseconds
         
-        if (now - sessionTime < twentyFourHours) {
+        if (now - sessionTime < fiveMinutes) {
           setIsBiometricAuthenticated(true);
+        } else {
+          // Clear expired session
+          await AsyncStorage.removeItem(BIOMETRIC_SESSION_KEY);
         }
       }
     } catch (error) {
@@ -95,14 +119,14 @@ export const BiometricAuthProvider: React.FC<{ children: React.ReactNode }> = ({
     setIsBiometricAuthenticated(authenticated);
     
     if (authenticated) {
-      // Store session timestamp
+      // Store session timestamp - valid for 5 minutes
       try {
         await AsyncStorage.setItem(BIOMETRIC_SESSION_KEY, Date.now().toString());
       } catch (error) {
         console.error('Error saving biometric session:', error);
       }
     } else {
-      // Clear session when logged out
+      // Clear session when authentication is lost
       try {
         await AsyncStorage.removeItem(BIOMETRIC_SESSION_KEY);
       } catch (error) {

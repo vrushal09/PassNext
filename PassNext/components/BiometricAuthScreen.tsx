@@ -1,16 +1,16 @@
 import React, { useEffect, useState } from 'react';
 import {
-  View,
+  ActivityIndicator,
+  Alert,
+  AppState,
+  SafeAreaView,
+  StyleSheet,
   Text,
   TouchableOpacity,
-  StyleSheet,
-  Alert,
-  SafeAreaView,
-  ActivityIndicator,
-  AppState,
+  View,
 } from 'react-native';
-import { biometricAuthService } from '../services/biometricAuthService';
 import Colors from '../constants/Colors';
+import { biometricAuthService } from '../services/biometricAuthService';
 
 interface BiometricAuthScreenProps {
   onSuccess: () => void;
