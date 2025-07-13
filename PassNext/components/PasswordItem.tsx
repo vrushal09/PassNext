@@ -1,22 +1,22 @@
+import { Ionicons } from '@expo/vector-icons';
 import React, { useRef } from 'react';
 import {
-  View,
-  Text,
-  TouchableOpacity,
-  StyleSheet,
-  Alert,
-  Clipboard,
-  Platform,
-  Animated,
-  Dimensions,
+    Alert,
+    Animated,
+    Clipboard,
+    Dimensions,
+    Platform,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
 } from 'react-native';
 import { PanGestureHandler, State } from 'react-native-gesture-handler';
-import { Ionicons } from '@expo/vector-icons';
-import { Password } from '../services/passwordService';
-import { biometricAuthService } from '../services/biometricAuthService';
-import { useCustomAlert } from '../hooks/useCustomAlert';
-import { CustomAlert } from './CustomAlert';
 import Colors from '../constants/Colors';
+import { useCustomAlert } from '../hooks/useCustomAlert';
+import { biometricAuthService } from '../services/biometricAuthService';
+import { Password } from '../services/passwordService';
+import { CustomAlert } from './CustomAlert';
 
 interface PasswordItemProps {
   password: Password;
@@ -81,6 +81,7 @@ export const PasswordItem: React.FC<PasswordItemProps> = ({
     // Define icon mappings for popular services
     const iconMap: { [key: string]: { name: any; color: string } } = {
       google: { name: 'logo-google', color: '#4285F4' },
+      gmail: { name: 'mail', color: '#EA4335' },
       youtube: { name: 'logo-youtube', color: '#FF0000' },
       facebook: { name: 'logo-facebook', color: '#1877F2' },
       instagram: { name: 'logo-instagram', color: '#E4405F' },
@@ -89,6 +90,7 @@ export const PasswordItem: React.FC<PasswordItemProps> = ({
       github: { name: 'logo-github', color: '#333333' },
       apple: { name: 'logo-apple', color: '#000000' },
       microsoft: { name: 'logo-microsoft', color: '#00A4EF' },
+      outlook: { name: 'mail', color: '#0078D4' },
       amazon: { name: 'logo-amazon', color: '#FF9900' },
       netflix: { name: 'logo-netflix', color: '#E50914' },
       spotify: { name: 'logo-spotify', color: '#1DB954' },
@@ -99,14 +101,91 @@ export const PasswordItem: React.FC<PasswordItemProps> = ({
       paypal: { name: 'logo-paypal', color: '#00457C' },
       mastercard: { name: 'card', color: '#EB001B' },
       visa: { name: 'card', color: '#1A1F71' },
+      whatsapp: { name: 'logo-whatsapp', color: '#25D366' },
+      telegram: { name: 'paper-plane', color: '#0088CC' },
+      tiktok: { name: 'musical-notes', color: '#FF0050' },
+      snapchat: { name: 'logo-snapchat', color: '#FFFC00' },
+      reddit: { name: 'logo-reddit', color: '#FF4500' },
+      pinterest: { name: 'logo-pinterest', color: '#BD081C' },
+      twitch: { name: 'logo-twitch', color: '#9146FF' },
+      zoom: { name: 'videocam', color: '#2D8CFF' },
+      skype: { name: 'logo-skype', color: '#00AFF0' },
+      teams: { name: 'people', color: '#6264A7' },
+      adobe: { name: 'color-palette', color: '#FF0000' },
+      canva: { name: 'brush', color: '#00C4CC' },
+      figma: { name: 'shapes', color: '#F24E1E' },
+      wordpress: { name: 'logo-wordpress', color: '#21759B' },
+      shopify: { name: 'storefront', color: '#7AB55C' },
+      ebay: { name: 'pricetag', color: '#E53238' },
+      etsy: { name: 'storefront', color: '#F1641E' },
+      uber: { name: 'car', color: '#000000' },
+      lyft: { name: 'car', color: '#FF00BF' },
+      airbnb: { name: 'home', color: '#FF5A5F' },
+      booking: { name: 'bed', color: '#003580' },
+      expedia: { name: 'airplane', color: '#FFC72C' },
+      tripadvisor: { name: 'location', color: '#00AF87' },
+      duolingo: { name: 'school', color: '#58CC02' },
+      coursera: { name: 'school', color: '#0056D3' },
+      udemy: { name: 'play', color: '#A435F0' },
+      medium: { name: 'document-text', color: '#00AB6C' },
+      notion: { name: 'document-text', color: '#000000' },
+      evernote: { name: 'document-text', color: '#00A82D' },
+      onenote: { name: 'document-text', color: '#7719AA' },
+      trello: { name: 'list', color: '#0052CC' },
+      asana: { name: 'checkmark-circle', color: '#F06A6A' },
+      jira: { name: 'bug', color: '#0052CC' },
+      bitbucket: { name: 'git-branch', color: '#0052CC' },
+      gitlab: { name: 'git-branch', color: '#FC6D26' },
+      docker: { name: 'cube', color: '#2496ED' },
+      aws: { name: 'cloud', color: '#FF9900' },
+      azure: { name: 'cloud', color: '#0078D4' },
+      gcp: { name: 'cloud', color: '#4285F4' },
+      heroku: { name: 'cloud', color: '#430098' },
+      digitalocean: { name: 'water', color: '#0080FF' },
+      cloudflare: { name: 'cloud', color: '#F38020' },
+      namecheap: { name: 'globe', color: '#DE3723' },
+      godaddy: { name: 'globe', color: '#1BDBDB' },
+      bluehost: { name: 'globe', color: '#1F5582' },
+      hostgator: { name: 'globe', color: '#FF6600' },
+      squarespace: { name: 'square', color: '#000000' },
+      wix: { name: 'brush', color: '#0C6EBD' },
+      mailchimp: { name: 'mail', color: '#FFE01B' },
+      hubspot: { name: 'funnel', color: '#FF7A59' },
+      salesforce: { name: 'cloud', color: '#00A1E0' },
+      zendesk: { name: 'chatbubble', color: '#03363D' },
+      intercom: { name: 'chatbubble', color: '#1F8DED' },
+      twilio: { name: 'call', color: '#F22F46' },
+      verizon: { name: 'call', color: '#CD040B' },
+      att: { name: 'call', color: '#00A8E0' },
+      tmobile: { name: 'call', color: '#E20074' },
+      sprint: { name: 'call', color: '#FFCF00' },
+      xfinity: { name: 'wifi', color: '#FF0037' },
+      spectrum: { name: 'wifi', color: '#047BC4' },
+      cox: { name: 'wifi', color: '#004B8D' },
+      rogers: { name: 'call', color: '#F5024C' },
+      bell: { name: 'call', color: '#0E5A96' },
+      telus: { name: 'call', color: '#6A1577' },
+      shaw: { name: 'wifi', color: '#0091DA' },
+      videotron: { name: 'wifi', color: '#E32012' },
+      cogeco: { name: 'wifi', color: '#FF8200' },
+      eastlink: { name: 'wifi', color: '#2E8B57' },
+      sasktel: { name: 'call', color: '#00833E' },
+      mts: { name: 'call', color: '#00833E' },
+      freedom: { name: 'call', color: '#00D4AA' },
+      chatr: { name: 'call', color: '#00A86B' },
+      lucky: { name: 'call', color: '#E60000' },
+      public: { name: 'call', color: '#00A86B' },
+      koodo: { name: 'call', color: '#6A1577' },
+      virgin: { name: 'call', color: '#E60000' },
+      fido: { name: 'call', color: '#F5024C' },
     };
 
     // Check if we have a specific icon for this service
     for (const [key, value] of Object.entries(iconMap)) {
       if (service.includes(key)) {
         return (
-          <View style={[styles.serviceIcon, { backgroundColor: Colors.surface }]}>
-            <Ionicons name={value.name} size={24} color={value.color} />
+          <View style={[styles.serviceIcon, { backgroundColor: value.color + '15' }]}>
+            <Ionicons name={value.name} size={20} color={value.color} />
           </View>
         );
       }
@@ -114,12 +193,16 @@ export const PasswordItem: React.FC<PasswordItemProps> = ({
 
     // Default fallback with first letter
     const firstLetter = serviceName.charAt(0).toUpperCase();
-    const colors = [Colors.primary, Colors.primaryLight, Colors.primaryDark, Colors.error, Colors.warning, Colors.success, Colors.info];
+    const colors = [
+      '#4285F4', '#EA4335', '#34A853', '#FBBC05', '#9C27B0', 
+      '#FF9800', '#795548', '#607D8B', '#E91E63', '#00BCD4'
+    ];
     const colorIndex = serviceName.length % colors.length;
+    const selectedColor = colors[colorIndex];
     
     return (
-      <View style={[styles.serviceIcon, { backgroundColor: colors[colorIndex] }]}>
-        <Text style={styles.serviceIconText}>{firstLetter}</Text>
+      <View style={[styles.serviceIcon, { backgroundColor: selectedColor + '15' }]}>
+        <Text style={[styles.serviceIconText, { color: selectedColor }]}>{firstLetter}</Text>
       </View>
     );
   };
@@ -287,27 +370,22 @@ export const PasswordItem: React.FC<PasswordItemProps> = ({
               <View style={styles.serviceInfo}>
                 <Text style={styles.serviceName}>{password.service}</Text>
                 <Text style={styles.serviceUrl}>{password.account}</Text>
-                <View style={styles.passwordRow}>
-                  <Text style={styles.passwordLabel}>Password: </Text>
-                  <Text style={styles.passwordValue}>••••••••••••</Text>
-                </View>
+                {password.notes && (
+                  <Text style={styles.notes} numberOfLines={1}>
+                    {password.notes}
+                  </Text>
+                )}
               </View>
               
               {/* Copy Button with Fingerprint Icon */}
               <TouchableOpacity onPress={copyPasswordToClipboard} style={styles.fingerprintButton}>
                 <Ionicons 
                   name="finger-print" 
-                  size={22} 
-                  color="#8E8E93" 
+                  size={20} 
+                  color={Colors.text.secondary}
                 />
               </TouchableOpacity>
             </TouchableOpacity>
-
-            {password.notes && (
-              <View style={styles.notesSection}>
-                <Text style={styles.notes}>{password.notes}</Text>
-              </View>
-            )}
             </View>
           </Animated.View>
         </Animated.View>
@@ -329,8 +407,8 @@ export const PasswordItem: React.FC<PasswordItemProps> = ({
 const styles = StyleSheet.create({
   container: {
     marginHorizontal: 20,
-    marginBottom: 16,
-    borderRadius: 16,
+    marginBottom: 12,
+    borderRadius: 12,
     overflow: 'hidden',
     backgroundColor: Colors.input.background,
     borderWidth: 1,
@@ -338,7 +416,7 @@ const styles = StyleSheet.create({
   },
   swipeWrapper: {
     position: 'relative',
-    borderRadius: 16,
+    borderRadius: 12,
     overflow: 'hidden',
   },
   swipeBackground: {
@@ -347,18 +425,18 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    borderRadius: 16,
+    borderRadius: 12,
   },
   swipeContainer: {
     position: 'relative',
-    borderRadius: 16,
-    minHeight: 80,
+    borderRadius: 12,
+    minHeight: 64,
     backgroundColor: Colors.background,
     zIndex: 2,
   },
   leftAction: {
     position: 'absolute',
-    left: 20,
+    left: 16,
     top: 0,
     bottom: 0,
     justifyContent: 'center',
@@ -367,7 +445,7 @@ const styles = StyleSheet.create({
   },
   rightAction: {
     position: 'absolute',
-    right: 20,
+    right: 16,
     top: 0,
     bottom: 0,
     justifyContent: 'center',
@@ -384,8 +462,8 @@ const styles = StyleSheet.create({
   },
   content: {
     backgroundColor: Colors.background,
-    borderRadius: 16,
-    padding: 16,
+    borderRadius: 12,
+    padding: 12,
     zIndex: 2,
     width: '100%',
   },
@@ -394,77 +472,52 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   serviceIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: 16,
+    width: 40,
+    height: 40,
+    borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 16,
+    marginRight: 12,
   },
   serviceIconText: {
     color: Colors.text.inverse,
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: '600',
   },
   serviceInfo: {
     flex: 1,
-    paddingRight: 12,
+    paddingRight: 8,
   },
   serviceName: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '500',
     color: Colors.text.primary,
     marginBottom: 2,
   },
   serviceUrl: {
-    fontSize: 14,
-    color: Colors.text.secondary,
-    marginBottom: 4,
-    fontWeight: '400',
-  },
-  passwordRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 0,
-  },
-  passwordLabel: {
     fontSize: 13,
     color: Colors.text.secondary,
+    marginBottom: 2,
     fontWeight: '400',
   },
-  passwordValue: {
-    fontSize: 13,
-    color: Colors.text.primary,
-    fontFamily: Platform.OS === 'ios' ? 'SF Mono' : 'monospace',
-    letterSpacing: 0.5,
+  notes: {
+    fontSize: 12,
+    color: Colors.text.tertiary,
     fontWeight: '400',
   },
   fingerprintButton: {
-    padding: 12,
-    marginLeft: 8,
-    borderRadius: 16,
-    backgroundColor: Colors.background,
+    padding: 8,
+    borderRadius: 12,
+    backgroundColor: Colors.input.background,
     borderWidth: 1,
     borderColor: 'transparent',
   },
   actionText: {
     color: Colors.text.inverse,
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: '500',
-    marginTop: 4,
+    marginTop: 2,
     textAlign: 'center',
-  },
-  notesSection: {
-    marginTop: 12,
-    paddingTop: 12,
-    borderTopWidth: 1,
-    borderTopColor: Colors.border,
-  },
-  notes: {
-    fontSize: 13,
-    color: Colors.text.secondary,
-    lineHeight: 18,
-    fontWeight: '400',
   },
   // Legacy styles for backward compatibility
   header: {

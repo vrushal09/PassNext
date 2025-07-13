@@ -1,31 +1,30 @@
-import React, { useState, useEffect } from 'react';
+import { Ionicons } from '@expo/vector-icons';
+import React, { useEffect, useState } from 'react';
 import {
-  View,
-  Text,
-  TouchableOpacity,
-  StyleSheet,
-  Alert,
-  SafeAreaView,
-  Switch,
   FlatList,
-  RefreshControl,
-  TextInput,
-  StatusBar,
   Platform,
+  RefreshControl,
+  SafeAreaView,
+  StatusBar,
+  StyleSheet,
+  Switch,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View
 } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { Ionicons } from '@expo/vector-icons';
+import Colors from '../constants/Colors';
 import { useAuth } from '../contexts/AuthContext';
 import { useBiometricAuth } from '../contexts/BiometricAuthContext';
+import { useCustomAlert } from '../hooks/useCustomAlert';
 import { authService } from '../services/authService';
 import { biometricAuthService } from '../services/biometricAuthService';
-import { passwordService, Password } from '../services/passwordService';
+import { Password, passwordService } from '../services/passwordService';
 import { AddPasswordModal } from './AddPasswordModal';
+import { CustomAlert } from './CustomAlert';
 import { EditPasswordModal } from './EditPasswordModal';
 import { PasswordItem } from './PasswordItem';
-import { CustomAlert } from './CustomAlert';
-import { useCustomAlert } from '../hooks/useCustomAlert';
-import Colors from '../constants/Colors';
 
 export const HomeScreen: React.FC = () => {
   const { user } = useAuth();
@@ -41,7 +40,6 @@ export const HomeScreen: React.FC = () => {
   const [showEditModal, setShowEditModal] = useState(false);
   const [selectedPassword, setSelectedPassword] = useState<Password | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('all');
   const [currentTab, setCurrentTab] = useState('home');
 
   // Load passwords on component mount
@@ -64,27 +62,8 @@ export const HomeScreen: React.FC = () => {
       );
     }
     
-    // Filter by category
-    if (selectedCategory !== 'all') {
-      filtered = filtered.filter(password => {
-        const service = password.service.toLowerCase();
-        switch (selectedCategory) {
-          case 'social':
-            return ['instagram', 'facebook', 'twitter', 'linkedin', 'snapchat', 'tiktok', 'discord', 'slack'].some(s => service.includes(s));
-          case 'work':
-            return ['microsoft', 'google', 'github', 'dropbox', 'slack', 'zoom', 'teams'].some(s => service.includes(s));
-          case 'entertainment':
-            return ['netflix', 'spotify', 'youtube', 'twitch', 'disney', 'hulu', 'prime'].some(s => service.includes(s));
-          case 'finance':
-            return ['paypal', 'bank', 'visa', 'mastercard', 'amex', 'venmo', 'cashapp'].some(s => service.includes(s));
-          default:
-            return true;
-        }
-      });
-    }
-    
     setFilteredPasswords(filtered);
-  }, [searchQuery, passwords, selectedCategory]);
+  }, [searchQuery, passwords]);
 
   const loadPasswords = async () => {
     if (!user) return;
@@ -207,73 +186,62 @@ export const HomeScreen: React.FC = () => {
 
               {/* Search */}
               <View style={styles.searchSection}>
-            <View style={styles.searchContainer}>
-              <Ionicons name="search-outline" size={20} color={Colors.text.tertiary} style={styles.searchIcon} />
-              <TextInput
-                style={styles.searchInput}
-                placeholder="Search"
-                placeholderTextColor={Colors.text.tertiary}
-                value={searchQuery}
-                onChangeText={setSearchQuery}
-                autoCapitalize="none"
-                autoCorrect={false}
-              />
-              <TouchableOpacity style={styles.searchMenuButton}>
-                <Ionicons name="ellipsis-vertical" size={16} color={Colors.text.tertiary} />
-              </TouchableOpacity>
-            </View>
-          </View>
-
-          {/* Most used header */}
-          <View style={styles.mostUsedHeader}>
-            <Text style={styles.mostUsedTitle}>Most used</Text>
-            <TouchableOpacity style={styles.expandButton}>
-              <Ionicons name="chevron-down" size={16} color={Colors.text.secondary} />
-            </TouchableOpacity>
-          </View>
-
-          {/* Password list */}
-          <FlatList
-            data={filteredPasswords}
-            keyExtractor={(item) => item.id!}
-            renderItem={({ item }) => (
-              <PasswordItem
-                password={item}
-                onEdit={handleEditPassword}
-                onDelete={handleDeletePassword}
-              />
-            )}
-            style={styles.passwordList}
-            showsVerticalScrollIndicator={false}
-            contentContainerStyle={styles.listContent}
-            refreshControl={
-              <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
-            }
-            ListEmptyComponent={
-              <View style={styles.emptyState}>
-                <Text style={styles.emptyStateText}>
-                  {loading ? 'Loading passwords...' : 
-                   searchQuery.length > 0 ? 'No passwords match your search' : 'No passwords saved yet'}
-                </Text>
-                {!loading && searchQuery.length === 0 && (
-                  <TouchableOpacity 
-                    style={styles.addFirstButton}
-                    onPress={() => setShowAddModal(true)}
-                  >
-                    <Text style={styles.addFirstButtonText}>Add Your First Password</Text>
-                  </TouchableOpacity>
-                )}
+                <View style={styles.searchContainer}>
+                  <Ionicons name="search-outline" size={20} color={Colors.text.tertiary} style={styles.searchIcon} />
+                  <TextInput
+                    style={styles.searchInput}
+                    placeholder="Search"
+                    placeholderTextColor={Colors.text.tertiary}
+                    value={searchQuery}
+                    onChangeText={setSearchQuery}
+                    autoCapitalize="none"
+                    autoCorrect={false}
+                  />
+                </View>
               </View>
-            }
-          />
 
-          {/* Floating Add Button */}
-          <TouchableOpacity 
-            style={styles.floatingAddButton}
-            onPress={() => setShowAddModal(true)}
-          >
-            <Ionicons name="add" size={28} color={Colors.text.inverse} />
-          </TouchableOpacity>
+              {/* Most used header */}
+              <View style={styles.mostUsedHeader}>
+                <Text style={styles.mostUsedTitle}>Most used</Text>
+                <TouchableOpacity style={styles.expandButton}>
+                  <Ionicons name="chevron-down" size={16} color={Colors.text.secondary} />
+                </TouchableOpacity>
+              </View>
+
+              {/* Password list */}
+              <FlatList
+                data={filteredPasswords}
+                keyExtractor={(item) => item.id!}
+                renderItem={({ item }) => (
+                  <PasswordItem
+                    password={item}
+                    onEdit={handleEditPassword}
+                    onDelete={handleDeletePassword}
+                  />
+                )}
+                style={styles.passwordList}
+                showsVerticalScrollIndicator={false}
+                contentContainerStyle={styles.listContent}
+                refreshControl={
+                  <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
+                }
+                ListEmptyComponent={
+                  <View style={styles.emptyState}>
+                    <Text style={styles.emptyStateText}>
+                      {loading ? 'Loading passwords...' : 
+                       searchQuery.length > 0 ? 'No passwords match your search' : 'No passwords saved yet'}
+                    </Text>
+                    {!loading && searchQuery.length === 0 && (
+                      <TouchableOpacity 
+                        style={styles.addFirstButton}
+                        onPress={() => setShowAddModal(true)}
+                      >
+                        <Text style={styles.addFirstButtonText}>Add Your First Password</Text>
+                      </TouchableOpacity>
+                    )}
+                  </View>
+                }
+              />
             </>
           )}
 
@@ -344,15 +312,22 @@ export const HomeScreen: React.FC = () => {
             style={[styles.navItem, currentTab === 'home' && styles.activeNavItem]}
             onPress={() => handleTabPress('home')}
           >
-            <Ionicons name="apps" size={24} color={currentTab === 'home' ? Colors.primary : Colors.text.secondary} />
-            <Text style={currentTab === 'home' ? styles.activeNavText : styles.navText}>Home</Text>
+            <Ionicons name="apps" size={22} color={currentTab === 'home' ? Colors.primary : Colors.text.secondary} />
           </TouchableOpacity>
+          
+          {/* Add Password Button */}
+          <TouchableOpacity 
+            style={styles.addNavButton}
+            onPress={() => setShowAddModal(true)}
+          >
+            <Ionicons name="add" size={24} color={Colors.text.inverse} />
+          </TouchableOpacity>
+          
           <TouchableOpacity 
             style={[styles.navItem, currentTab === 'security' && styles.activeNavItem]}
             onPress={() => handleTabPress('security')}
           >
-            <Ionicons name="shield-checkmark" size={24} color={currentTab === 'security' ? Colors.primary : Colors.text.secondary} />
-            <Text style={currentTab === 'security' ? styles.activeNavText : styles.navText}>Security</Text>
+            <Ionicons name="shield-checkmark" size={22} color={currentTab === 'security' ? Colors.primary : Colors.text.secondary} />
           </TouchableOpacity>
         </View>
 
@@ -554,7 +529,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 4,
   },
   listContent: {
-    paddingBottom: 100,
+    paddingBottom: 20,
     paddingTop: 8,
   },
   emptyState: {
@@ -607,21 +582,33 @@ const styles = StyleSheet.create({
   bottomNav: {
     flexDirection: 'row',
     backgroundColor: Colors.background,
-    paddingVertical: 12,
-    paddingHorizontal: 40,
+    paddingVertical: 16,
+    paddingHorizontal: 20,
     borderTopWidth: 1,
     borderTopColor: Colors.divider,
     justifyContent: 'space-around',
   },
   navItem: {
     alignItems: 'center',
-    paddingVertical: 8,
-    paddingHorizontal: 20,
-    minWidth: 80,
+    justifyContent: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 16,
+    minWidth: 48,
+    minHeight: 48,
   },
   activeNavItem: {
-    borderTopWidth: 2,
-    borderTopColor: Colors.primary,
+    backgroundColor: Colors.primary + '15',
+  },
+  addNavButton: {
+    backgroundColor: Colors.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 16,
+    minWidth: 48,
+    minHeight: 48,
   },
   navText: {
     fontSize: 12,
