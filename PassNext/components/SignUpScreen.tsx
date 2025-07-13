@@ -222,7 +222,7 @@ const styles = StyleSheet.create({
     opacity: 0.6,
   },
   buttonText: {
-    color: Colors.text.primary,
+    color: Colors.text.inverse,
     fontSize: 16,
     fontWeight: '600',
   },

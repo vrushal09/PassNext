@@ -14,12 +14,10 @@ import { biometricAuthService } from '../services/biometricAuthService';
 
 interface BiometricAuthScreenProps {
   onSuccess: () => void;
-  onDisableBiometric: () => void;
 }
 
 export const BiometricAuthScreen: React.FC<BiometricAuthScreenProps> = ({
   onSuccess,
-  onDisableBiometric,
 }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [isAuthenticating, setIsAuthenticating] = useState(false);
@@ -69,12 +67,12 @@ export const BiometricAuthScreen: React.FC<BiometricAuthScreenProps> = ({
         }, 300);
       } else {
         setIsLoading(false);
-        // If biometric is not available, disable biometric authentication
+        // If biometric is not available, show error and exit app
         Alert.alert(
-          'Biometric Authentication Unavailable',
-          'Biometric authentication is not available on this device.',
+          'Biometric Authentication Required',
+          'This app requires biometric authentication to be set up on your device. Please set up fingerprint, Face ID, or other biometric authentication in your device settings and restart the app.',
           [
-            { text: 'OK', onPress: onDisableBiometric }
+            { text: 'OK', onPress: () => {} }
           ]
         );
       }
@@ -83,12 +81,12 @@ export const BiometricAuthScreen: React.FC<BiometricAuthScreenProps> = ({
       setIsLoading(false);
       setIsAvailable(false);
       
-      // On error, also disable biometric authentication
+      // On error, show error message
       Alert.alert(
         'Authentication Error',
-        'There was an error with biometric authentication.',
+        'There was an error with biometric authentication. Please ensure biometric authentication is set up on your device.',
         [
-          { text: 'OK', onPress: onDisableBiometric }
+          { text: 'OK', onPress: () => {} }
         ]
       );
     }
@@ -115,32 +113,30 @@ export const BiometricAuthScreen: React.FC<BiometricAuthScreenProps> = ({
         const errorString = result.error || 'Authentication failed';
         
         if (errorString.includes('cancelled')) {
-          // User cancelled - show retry option
+          // User cancelled - show retry option only
           Alert.alert(
-            'Authentication Cancelled',
-            'Please use biometric authentication to continue.',
+            'Authentication Required',
+            'Biometric authentication is required to access this app. Please authenticate to continue.',
             [
-              { text: 'Try Again', onPress: () => handleBiometricAuth() },
-              { text: 'Disable Biometric', onPress: onDisableBiometric }
+              { text: 'Try Again', onPress: () => handleBiometricAuth() }
             ]
           );
-        } else if (retryCount < 3) {
+        } else if (retryCount < 5) {
           // Show retry options for other errors
           Alert.alert(
             'Authentication Failed',
-            errorString,
+            errorString + '\n\nBiometric authentication is required to access this app.',
             [
-              { text: 'Try Again', onPress: () => handleBiometricAuth() },
-              { text: 'Disable Biometric', onPress: onDisableBiometric }
+              { text: 'Try Again', onPress: () => handleBiometricAuth() }
             ]
           );
         } else {
-          // After 3 failed attempts, disable biometric
+          // After 5 failed attempts, keep trying
           Alert.alert(
-            'Too Many Attempts',
-            'Please try again or disable biometric authentication.',
+            'Multiple Authentication Attempts',
+            'Please ensure your biometric authentication is working properly and try again.',
             [
-              { text: 'Disable Biometric', onPress: onDisableBiometric }
+              { text: 'Try Again', onPress: () => handleBiometricAuth() }
             ]
           );
         }
@@ -149,9 +145,9 @@ export const BiometricAuthScreen: React.FC<BiometricAuthScreenProps> = ({
       console.error('Biometric authentication error:', error);
       Alert.alert(
         'Authentication Error',
-        'An unexpected error occurred.',
+        'An unexpected error occurred. Please try again.',
         [
-          { text: 'OK', onPress: onDisableBiometric }
+          { text: 'Try Again', onPress: () => handleBiometricAuth() }
         ]
       );
     } finally {
@@ -180,11 +176,11 @@ export const BiometricAuthScreen: React.FC<BiometricAuthScreenProps> = ({
           
           <Text style={styles.title}>Biometric Authentication Required</Text>
           <Text style={styles.subtitle}>
-            Please set up biometric authentication on your device to continue.
+            This app requires biometric authentication to be set up on your device. Please set up fingerprint, Face ID, or other biometric authentication in your device settings and restart the app.
           </Text>
           
-          <TouchableOpacity style={styles.button} onPress={onDisableBiometric}>
-            <Text style={styles.buttonText}>Continue Without Biometric</Text>
+          <TouchableOpacity style={styles.button} onPress={initializeBiometricAuth}>
+            <Text style={styles.buttonText}>Check Again</Text>
           </TouchableOpacity>
         </View>
       </SafeAreaView>
@@ -219,9 +215,9 @@ export const BiometricAuthScreen: React.FC<BiometricAuthScreenProps> = ({
           )}
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.fallbackButton} onPress={onDisableBiometric}>
-          <Text style={styles.fallbackButtonText}>Continue Without Biometric</Text>
-        </TouchableOpacity>
+        <Text style={styles.requiredText}>
+          Biometric authentication is required to access this app
+        </Text>
       </View>
     </SafeAreaView>
   );
@@ -308,5 +304,11 @@ const styles = StyleSheet.create({
   fallbackButtonText: {
     color: Colors.text.secondary,
     fontSize: 16,
+  },
+  requiredText: {
+    color: Colors.text.tertiary,
+    fontSize: 14,
+    textAlign: 'center',
+    marginTop: 20,
   },
 });

@@ -12,7 +12,6 @@ export default function Index() {
   const { 
     isBiometricRequired, 
     setBiometricAuthenticated, 
-    setBiometricEnabled,
     resetBiometricAuth
   } = useBiometricAuth();
 
@@ -36,11 +35,6 @@ export default function Index() {
     return (
       <BiometricAuthScreen
         onSuccess={() => {
-          setBiometricAuthenticated(true);
-        }}
-        onDisableBiometric={() => {
-          // Disable biometric authentication
-          setBiometricEnabled(false);
           setBiometricAuthenticated(true);
         }}
       />

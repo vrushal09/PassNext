@@ -4,10 +4,10 @@
  */
 
 export const Colors = {
-  // Primary brand colors (Updated to match new design)
-  primary: '#2563EB',      // Bright Blue (for primary actions)
-  primaryLight: '#3B82F6',  // Lighter blue
-  primaryDark: '#1D4ED8',   // Darker blue
+  // Primary brand colors (Updated to white accent)
+  primary: '#FFFFFF',      // White (for primary actions)
+  primaryLight: '#F8F9FA',  // Very light gray
+  primaryDark: '#E5E5E5',   // Light gray
   
   // UI Colors (Dark theme)
   background: '#0C0C0C',    // Deep Black
@@ -29,24 +29,24 @@ export const Colors = {
   error: '#FF3B30',
   info: '#1A73E8',
   
-  // Interactive elements (Updated for dark theme)
+  // Interactive elements (Updated for white accent)
   button: {
-    primary: '#2563EB',     // Bright Blue for primary buttons
+    primary: '#FFFFFF',     // White for primary buttons
     secondary: '#1A1A1A',   // Dark Gray for secondary buttons
     disabled: '#6B7280',    // Disabled state
   },
   
-  // Input fields (Dark theme)
+  // Input fields (Dark theme with white accent)
   input: {
     background: '#1A1A1A',  // Dark Gray background
     border: '#E5E5E5',      // Light border
-    focused: '#2563EB',     // Bright Blue when focused
+    focused: '#FFFFFF',     // White when focused
     placeholder: '#A3A3A3', // Light Gray for placeholders
   },
   
-  // Navigation (Dark theme)
+  // Navigation (Dark theme with white accent)
   nav: {
-    active: '#2563EB',      // Bright Blue for active state
+    active: '#FFFFFF',      // White for active state
     inactive: '#A3A3A3',    // Light Gray for inactive
     background: '#0C0C0C',  // Deep Black background
     border: '#E5E5E5',      // Light border

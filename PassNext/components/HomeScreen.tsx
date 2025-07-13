@@ -7,7 +7,6 @@ import {
   SafeAreaView,
   StatusBar,
   StyleSheet,
-  Switch,
   Text,
   TextInput,
   TouchableOpacity,
@@ -16,10 +15,8 @@ import {
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import Colors from '../constants/Colors';
 import { useAuth } from '../contexts/AuthContext';
-import { useBiometricAuth } from '../contexts/BiometricAuthContext';
 import { useCustomAlert } from '../hooks/useCustomAlert';
 import { authService } from '../services/authService';
-import { biometricAuthService } from '../services/biometricAuthService';
 import { Password, passwordService } from '../services/passwordService';
 import { AddPasswordModal } from './AddPasswordModal';
 import { CustomAlert } from './CustomAlert';
@@ -28,7 +25,6 @@ import { PasswordItem } from './PasswordItem';
 
 export const HomeScreen: React.FC = () => {
   const { user } = useAuth();
-  const { isBiometricEnabled, setBiometricEnabled } = useBiometricAuth();
   const { alertState, showAlert, hideAlert, showSuccess, showError, showConfirm, showDestructiveConfirm } = useCustomAlert();
   
   // Password management state
@@ -134,44 +130,6 @@ export const HomeScreen: React.FC = () => {
     );
   };
 
-  const handleBiometricToggle = async (value: boolean) => {
-    if (value) {
-      // Enable biometric auth
-      const isAvailable = await biometricAuthService.isAvailable();
-      
-      if (!isAvailable) {
-        showError(
-          'Biometric Authentication Unavailable',
-          'Biometric authentication is not available on this device or not set up. Please set up fingerprint, Face ID, or other biometric authentication in your device settings.'
-        );
-        return;
-      }
-
-      // Test biometric auth before enabling
-      const result = await biometricAuthService.authenticate('Confirm to enable biometric authentication');
-      
-      if (result.success) {
-        setBiometricEnabled(true);
-        showSuccess('Success', 'Biometric authentication has been enabled for your account.');
-      } else {
-        showError('Authentication Failed', result.error || 'Please try again');
-      }
-    } else {
-      // Disable biometric auth
-      showConfirm(
-        'Disable Biometric Authentication',
-        'Are you sure you want to disable biometric authentication?',
-        () => {
-          setBiometricEnabled(false);
-          showSuccess('Disabled', 'Biometric authentication has been disabled.');
-        },
-        undefined,
-        'Disable',
-        'Cancel'
-      );
-    }
-  };
-
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaView style={styles.container}>
@@ -187,10 +145,10 @@ export const HomeScreen: React.FC = () => {
               {/* Search */}
               <View style={styles.searchSection}>
                 <View style={styles.searchContainer}>
-                  <Ionicons name="search-outline" size={20} color={Colors.text.tertiary} style={styles.searchIcon} />
+                  <Ionicons name="search-outline" size={16} color={Colors.text.tertiary} style={styles.searchIcon} />
                   <TextInput
                     style={styles.searchInput}
-                    placeholder="Search"
+                    placeholder="Search passwords..."
                     placeholderTextColor={Colors.text.tertiary}
                     value={searchQuery}
                     onChangeText={setSearchQuery}
@@ -266,15 +224,12 @@ export const HomeScreen: React.FC = () => {
                   <View style={styles.securityItemContent}>
                     <Text style={styles.securityItemTitle}>Biometric Authentication</Text>
                     <Text style={styles.securityItemDescription}>
-                      {isBiometricEnabled ? 'Enabled' : 'Disabled'}
+                      Always Required - Enhanced Security
                     </Text>
                   </View>
-                  <Switch
-                    value={isBiometricEnabled}
-                    onValueChange={handleBiometricToggle}
-                    trackColor={{ false: Colors.border, true: Colors.primary }}
-                    thumbColor={isBiometricEnabled ? Colors.text.inverse : Colors.text.secondary}
-                  />
+                  <View style={styles.securityStatusBadge}>
+                    <Ionicons name="checkmark-circle" size={20} color={Colors.success} />
+                  </View>
                 </View>
 
                 <View style={styles.securityItem}>
@@ -375,14 +330,14 @@ const styles = StyleSheet.create({
   },
   homeHeader: {
     paddingHorizontal: 20,
-    paddingTop: 50,
-    paddingBottom: 16,
+    paddingTop: 40,
+    paddingBottom: 20,
   },
   appTitle: {
-    fontSize: 32,
+    fontSize: 28,
     fontWeight: '500',
     color: Colors.text.primary,
-    letterSpacing: -0.8,
+    letterSpacing: -0.5,
   },
   header: {
     flexDirection: 'row',
@@ -425,25 +380,25 @@ const styles = StyleSheet.create({
   },
   searchSection: {
     paddingHorizontal: 20,
-    marginBottom: 24,
+    marginBottom: 20,
   },
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: Colors.input.background,
-    borderRadius: 16,
-    paddingHorizontal: 20,
-    paddingVertical: 18,
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
     borderWidth: 1,
     borderColor: 'transparent',
-    minHeight: 56,
+    minHeight: 44,
   },
   searchIcon: {
-    marginRight: 12,
+    marginRight: 10,
   },
   searchInput: {
     flex: 1,
-    fontSize: 16,
+    fontSize: 15,
     color: Colors.text.primary,
     fontWeight: '400',
   },
@@ -457,69 +412,77 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 20,
-    marginBottom: 20,
+    marginBottom: 16,
   },
   mostUsedTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: Colors.text.primary,
+    fontSize: 15,
+    fontWeight: '500',
+    color: Colors.text.secondary,
   },
   expandButton: {
     padding: 4,
   },
   securityContent: {
     flex: 1,
-    paddingTop: 50,
+    paddingTop: 40,
   },
   securityHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 20,
-    paddingBottom: 20,
+    paddingBottom: 24,
   },
   securityTitle: {
-    fontSize: 24,
-    fontWeight: '600',
+    fontSize: 22,
+    fontWeight: '500',
     color: Colors.text.primary,
   },
   securitySection: {
     backgroundColor: Colors.input.background,
     marginHorizontal: 20,
-    borderRadius: 16,
-    padding: 20,
+    borderRadius: 12,
+    padding: 16,
     borderWidth: 1,
     borderColor: 'transparent',
   },
   securityItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 16,
+    paddingVertical: 12,
     borderBottomWidth: 1,
     borderBottomColor: Colors.divider,
   },
   securityItemIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: 16,
+    width: 40,
+    height: 40,
+    borderRadius: 12,
     backgroundColor: Colors.background,
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: 16,
+    marginRight: 12,
   },
   securityItemContent: {
     flex: 1,
   },
   securityItemTitle: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '500',
     color: Colors.text.primary,
     marginBottom: 2,
   },
   securityItemDescription: {
-    fontSize: 14,
+    fontSize: 13,
     color: Colors.text.secondary,
     fontWeight: '400',
+  },
+  securityStatusBadge: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: Colors.success + '15',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   lastSecurityItem: {
     borderBottomWidth: 0,
@@ -529,35 +492,36 @@ const styles = StyleSheet.create({
     paddingHorizontal: 4,
   },
   listContent: {
-    paddingBottom: 20,
-    paddingTop: 8,
+    paddingBottom: 16,
+    paddingTop: 4,
   },
   emptyState: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingVertical: 60,
-    paddingHorizontal: 40,
+    paddingVertical: 40,
+    paddingHorizontal: 32,
   },
   emptyStateText: {
-    fontSize: 16,
+    fontSize: 15,
     color: Colors.text.secondary,
     textAlign: 'center',
-    marginBottom: 20,
+    marginBottom: 16,
     fontWeight: '400',
+    lineHeight: 20,
   },
   addFirstButton: {
     backgroundColor: Colors.primary,
-    paddingHorizontal: 32,
-    paddingVertical: 16,
-    borderRadius: 16,
-    minHeight: 56,
+    paddingHorizontal: 28,
+    paddingVertical: 14,
+    borderRadius: 12,
+    minHeight: 48,
     justifyContent: 'center',
     alignItems: 'center',
   },
   addFirstButtonText: {
     color: Colors.text.inverse,
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '500',
   },
   floatingAddButton: {
@@ -582,7 +546,7 @@ const styles = StyleSheet.create({
   bottomNav: {
     flexDirection: 'row',
     backgroundColor: Colors.background,
-    paddingVertical: 16,
+    paddingVertical: 14,
     paddingHorizontal: 20,
     borderTopWidth: 1,
     borderTopColor: Colors.divider,
@@ -591,24 +555,24 @@ const styles = StyleSheet.create({
   navItem: {
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    borderRadius: 16,
-    minWidth: 48,
-    minHeight: 48,
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 12,
+    minWidth: 44,
+    minHeight: 44,
   },
   activeNavItem: {
-    backgroundColor: Colors.primary + '15',
+    backgroundColor: Colors.primary + '10',
   },
   addNavButton: {
     backgroundColor: Colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    borderRadius: 16,
-    minWidth: 48,
-    minHeight: 48,
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 12,
+    minWidth: 44,
+    minHeight: 44,
   },
   navText: {
     fontSize: 12,

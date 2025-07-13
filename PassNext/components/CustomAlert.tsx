@@ -192,10 +192,10 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   defaultButtonText: {
-    color: Colors.text.primary,
+    color: Colors.text.inverse,
   },
   destructiveButtonText: {
-    color: Colors.text.primary,
+    color: Colors.text.inverse,
   },
   cancelButtonText: {
     color: Colors.text.secondary,

@@ -34,7 +34,7 @@ const BIOMETRIC_SESSION_KEY = 'biometric_session';
 
 export const BiometricAuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user } = useAuth();
-  const [isBiometricEnabled, setIsBiometricEnabled] = useState(false);
+  const [isBiometricEnabled, setIsBiometricEnabled] = useState(true); // Always enabled
   const [isBiometricAuthenticated, setIsBiometricAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [appState, setAppState] = useState(AppState.currentState);
@@ -52,12 +52,10 @@ export const BiometricAuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const handleAppStateChange = (nextAppState: AppStateStatus) => {
     if (appState.match(/inactive|background/) && nextAppState === 'active') {
-      // App came to foreground - require biometric auth again if enabled
-      if (isBiometricEnabled) {
-        setIsBiometricAuthenticated(false);
-        // Clear session to ensure fresh authentication
-        AsyncStorage.removeItem(BIOMETRIC_SESSION_KEY).catch(console.error);
-      }
+      // App came to foreground - always require biometric auth again
+      setIsBiometricAuthenticated(false);
+      // Clear session to ensure fresh authentication
+      AsyncStorage.removeItem(BIOMETRIC_SESSION_KEY).catch(console.error);
     }
     setAppState(nextAppState);
   };
@@ -73,12 +71,10 @@ export const BiometricAuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const loadBiometricSettings = async () => {
     try {
-      const [enabled, session] = await Promise.all([
-        AsyncStorage.getItem(BIOMETRIC_ENABLED_KEY),
-        AsyncStorage.getItem(BIOMETRIC_SESSION_KEY),
-      ]);
+      const session = await AsyncStorage.getItem(BIOMETRIC_SESSION_KEY);
 
-      setIsBiometricEnabled(enabled === 'true');
+      // Biometric is always enabled
+      setIsBiometricEnabled(true);
       
       // Check if we have a valid session (within last 5 minutes for app foreground)
       if (session) {
@@ -101,15 +97,15 @@ export const BiometricAuthProvider: React.FC<{ children: React.ReactNode }> = ({
   };
 
   const setBiometricEnabled = async (enabled: boolean) => {
+    // Biometric is always enabled - ignore disable requests
+    if (!enabled) {
+      console.warn('Biometric authentication cannot be disabled');
+      return;
+    }
+    
     try {
-      await AsyncStorage.setItem(BIOMETRIC_ENABLED_KEY, enabled.toString());
-      setIsBiometricEnabled(enabled);
-      
-      if (!enabled) {
-        // If disabling biometric, clear session
-        await AsyncStorage.removeItem(BIOMETRIC_SESSION_KEY);
-        setIsBiometricAuthenticated(false);
-      }
+      await AsyncStorage.setItem(BIOMETRIC_ENABLED_KEY, 'true');
+      setIsBiometricEnabled(true);
     } catch (error) {
       console.error('Error saving biometric enabled setting:', error);
     }
@@ -145,17 +141,17 @@ export const BiometricAuthProvider: React.FC<{ children: React.ReactNode }> = ({
   };
 
   // Determine if biometric authentication is required
-  // Only require biometric if it's enabled AND not authenticated
-  const isBiometricRequired = isBiometricEnabled && !isBiometricAuthenticated;
+  // Always required since biometric is always enabled
+  const isBiometricRequired = !isBiometricAuthenticated;
 
   if (isLoading) {
-    // Don't block rendering, just use default values while loading
+    // Don't block rendering, but require biometric auth
     return (
       <BiometricAuthContext.Provider
         value={{
-          isBiometricEnabled: false,
-          isBiometricRequired: false,
-          isBiometricAuthenticated: true, // Allow access while loading
+          isBiometricEnabled: true,
+          isBiometricRequired: true,
+          isBiometricAuthenticated: false,
           setBiometricEnabled,
           setBiometricAuthenticated,
           resetBiometricAuth,
