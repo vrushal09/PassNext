@@ -145,7 +145,7 @@ export const HomeScreen: React.FC = () => {
               {/* Search */}
               <View style={styles.searchSection}>
                 <View style={styles.searchContainer}>
-                  <Ionicons name="search-outline" size={16} color={Colors.text.tertiary} style={styles.searchIcon} />
+                  <Ionicons name="search-outline" size={14} color={Colors.text.tertiary} style={styles.searchIcon} />
                   <TextInput
                     style={styles.searchInput}
                     placeholder="Search passwords..."
@@ -380,25 +380,25 @@ const styles = StyleSheet.create({
   },
   searchSection: {
     paddingHorizontal: 20,
-    marginBottom: 20,
+    marginBottom: 16,
   },
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: Colors.input.background,
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
     borderWidth: 1,
     borderColor: 'transparent',
-    minHeight: 44,
+    minHeight: 36,
   },
   searchIcon: {
-    marginRight: 10,
+    marginRight: 8,
   },
   searchInput: {
     flex: 1,
-    fontSize: 15,
+    fontSize: 14,
     color: Colors.text.primary,
     fontWeight: '400',
   },

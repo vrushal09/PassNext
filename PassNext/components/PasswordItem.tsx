@@ -1,15 +1,15 @@
 import { Ionicons } from '@expo/vector-icons';
 import React, { useRef } from 'react';
 import {
-    Alert,
-    Animated,
-    Clipboard,
-    Dimensions,
-    Platform,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  Alert,
+  Animated,
+  Clipboard,
+  Dimensions,
+  Platform,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { PanGestureHandler, State } from 'react-native-gesture-handler';
 import Colors from '../constants/Colors';
@@ -86,106 +86,102 @@ export const PasswordItem: React.FC<PasswordItemProps> = ({
       facebook: { name: 'logo-facebook', color: '#1877F2' },
       instagram: { name: 'logo-instagram', color: '#E4405F' },
       twitter: { name: 'logo-twitter', color: '#1DA1F2' },
+      x: { name: 'logo-twitter', color: '#000000' },
       linkedin: { name: 'logo-linkedin', color: '#0A66C2' },
       github: { name: 'logo-github', color: '#333333' },
       apple: { name: 'logo-apple', color: '#000000' },
+      icloud: { name: 'cloud', color: '#007AFF' },
       microsoft: { name: 'logo-microsoft', color: '#00A4EF' },
       outlook: { name: 'mail', color: '#0078D4' },
+      office: { name: 'document-text', color: '#0078D4' },
       amazon: { name: 'logo-amazon', color: '#FF9900' },
-      netflix: { name: 'logo-netflix', color: '#E50914' },
-      spotify: { name: 'logo-spotify', color: '#1DB954' },
+      netflix: { name: 'tv', color: '#E50914' },
+      spotify: { name: 'musical-notes', color: '#1DB954' },
       dropbox: { name: 'logo-dropbox', color: '#0061FF' },
       dribbble: { name: 'logo-dribbble', color: '#EA4C89' },
-      slack: { name: 'logo-slack', color: '#4A154B' },
-      discord: { name: 'logo-discord', color: '#5865F2' },
+      slack: { name: 'chatbubbles', color: '#4A154B' },
+      discord: { name: 'game-controller', color: '#5865F2' },
       paypal: { name: 'logo-paypal', color: '#00457C' },
+      stripe: { name: 'card', color: '#635BFF' },
       mastercard: { name: 'card', color: '#EB001B' },
       visa: { name: 'card', color: '#1A1F71' },
-      whatsapp: { name: 'logo-whatsapp', color: '#25D366' },
+      bank: { name: 'card', color: '#2E7D32' },
+      chase: { name: 'card', color: '#004879' },
+      wells: { name: 'card', color: '#D71921' },
+      bofa: { name: 'card', color: '#DC143C' },
+      citi: { name: 'card', color: '#056BAE' },
+      amex: { name: 'card', color: '#006FCF' },
+      discover: { name: 'card', color: '#FF6000' },
+      whatsapp: { name: 'chatbubble', color: '#25D366' },
       telegram: { name: 'paper-plane', color: '#0088CC' },
+      signal: { name: 'shield-checkmark', color: '#3A76F0' },
       tiktok: { name: 'musical-notes', color: '#FF0050' },
-      snapchat: { name: 'logo-snapchat', color: '#FFFC00' },
+      snapchat: { name: 'camera', color: '#FFFC00' },
       reddit: { name: 'logo-reddit', color: '#FF4500' },
-      pinterest: { name: 'logo-pinterest', color: '#BD081C' },
-      twitch: { name: 'logo-twitch', color: '#9146FF' },
+      pinterest: { name: 'image', color: '#BD081C' },
+      tumblr: { name: 'logo-tumblr', color: '#001935' },
+      twitch: { name: 'videocam', color: '#9146FF' },
       zoom: { name: 'videocam', color: '#2D8CFF' },
       skype: { name: 'logo-skype', color: '#00AFF0' },
       teams: { name: 'people', color: '#6264A7' },
       adobe: { name: 'color-palette', color: '#FF0000' },
+      photoshop: { name: 'image', color: '#31A8FF' },
+      illustrator: { name: 'brush', color: '#FF9A00' },
       canva: { name: 'brush', color: '#00C4CC' },
       figma: { name: 'shapes', color: '#F24E1E' },
+      sketch: { name: 'diamond', color: '#FDB300' },
       wordpress: { name: 'logo-wordpress', color: '#21759B' },
       shopify: { name: 'storefront', color: '#7AB55C' },
+      woocommerce: { name: 'bag', color: '#96588A' },
+      squarespace: { name: 'square', color: '#000000' },
+      wix: { name: 'brush', color: '#0C6EBD' },
       ebay: { name: 'pricetag', color: '#E53238' },
-      etsy: { name: 'storefront', color: '#F1641E' },
+      etsy: { name: 'gift', color: '#F1641E' },
+      alibaba: { name: 'bag', color: '#FF6A00' },
       uber: { name: 'car', color: '#000000' },
-      lyft: { name: 'car', color: '#FF00BF' },
+      lyft: { name: 'car-sport', color: '#FF00BF' },
       airbnb: { name: 'home', color: '#FF5A5F' },
       booking: { name: 'bed', color: '#003580' },
       expedia: { name: 'airplane', color: '#FFC72C' },
       tripadvisor: { name: 'location', color: '#00AF87' },
       duolingo: { name: 'school', color: '#58CC02' },
-      coursera: { name: 'school', color: '#0056D3' },
+      coursera: { name: 'library', color: '#0056D3' },
       udemy: { name: 'play', color: '#A435F0' },
+      khan: { name: 'school', color: '#14BF96' },
       medium: { name: 'document-text', color: '#00AB6C' },
+      substack: { name: 'newspaper', color: '#FF6719' },
       notion: { name: 'document-text', color: '#000000' },
-      evernote: { name: 'document-text', color: '#00A82D' },
+      evernote: { name: 'bookmark', color: '#00A82D' },
       onenote: { name: 'document-text', color: '#7719AA' },
       trello: { name: 'list', color: '#0052CC' },
       asana: { name: 'checkmark-circle', color: '#F06A6A' },
+      monday: { name: 'calendar', color: '#FF3D57' },
       jira: { name: 'bug', color: '#0052CC' },
+      confluence: { name: 'document-text', color: '#172B4D' },
       bitbucket: { name: 'git-branch', color: '#0052CC' },
       gitlab: { name: 'git-branch', color: '#FC6D26' },
       docker: { name: 'cube', color: '#2496ED' },
+      kubernetes: { name: 'grid', color: '#326CE5' },
       aws: { name: 'cloud', color: '#FF9900' },
       azure: { name: 'cloud', color: '#0078D4' },
       gcp: { name: 'cloud', color: '#4285F4' },
       heroku: { name: 'cloud', color: '#430098' },
       digitalocean: { name: 'water', color: '#0080FF' },
-      cloudflare: { name: 'cloud', color: '#F38020' },
+      cloudflare: { name: 'shield', color: '#F38020' },
+      vercel: { name: 'triangle', color: '#000000' },
+      netlify: { name: 'git-network', color: '#00C7B7' },
       namecheap: { name: 'globe', color: '#DE3723' },
       godaddy: { name: 'globe', color: '#1BDBDB' },
-      bluehost: { name: 'globe', color: '#1F5582' },
-      hostgator: { name: 'globe', color: '#FF6600' },
-      squarespace: { name: 'square', color: '#000000' },
-      wix: { name: 'brush', color: '#0C6EBD' },
-      mailchimp: { name: 'mail', color: '#FFE01B' },
-      hubspot: { name: 'funnel', color: '#FF7A59' },
-      salesforce: { name: 'cloud', color: '#00A1E0' },
-      zendesk: { name: 'chatbubble', color: '#03363D' },
-      intercom: { name: 'chatbubble', color: '#1F8DED' },
-      twilio: { name: 'call', color: '#F22F46' },
-      verizon: { name: 'call', color: '#CD040B' },
-      att: { name: 'call', color: '#00A8E0' },
-      tmobile: { name: 'call', color: '#E20074' },
-      sprint: { name: 'call', color: '#FFCF00' },
-      xfinity: { name: 'wifi', color: '#FF0037' },
-      spectrum: { name: 'wifi', color: '#047BC4' },
-      cox: { name: 'wifi', color: '#004B8D' },
-      rogers: { name: 'call', color: '#F5024C' },
-      bell: { name: 'call', color: '#0E5A96' },
-      telus: { name: 'call', color: '#6A1577' },
-      shaw: { name: 'wifi', color: '#0091DA' },
-      videotron: { name: 'wifi', color: '#E32012' },
-      cogeco: { name: 'wifi', color: '#FF8200' },
-      eastlink: { name: 'wifi', color: '#2E8B57' },
-      sasktel: { name: 'call', color: '#00833E' },
-      mts: { name: 'call', color: '#00833E' },
-      freedom: { name: 'call', color: '#00D4AA' },
-      chatr: { name: 'call', color: '#00A86B' },
-      lucky: { name: 'call', color: '#E60000' },
-      public: { name: 'call', color: '#00A86B' },
-      koodo: { name: 'call', color: '#6A1577' },
-      virgin: { name: 'call', color: '#E60000' },
-      fido: { name: 'call', color: '#F5024C' },
+      bluehost: { name: 'server', color: '#1F5582' },
+      hostgator: { name: 'server', color: '#FF6600' },
     };
 
     // Check if we have a specific icon for this service
     for (const [key, value] of Object.entries(iconMap)) {
       if (service.includes(key)) {
         return (
-          <View style={[styles.serviceIcon, { backgroundColor: value.color + '15' }]}>
-            <Ionicons name={value.name} size={20} color={value.color} />
+          <View style={[styles.serviceIcon, { backgroundColor: value.color + '12' }]}>
+            <Ionicons name={value.name} size={18} color={value.color} />
           </View>
         );
       }
@@ -201,7 +197,7 @@ export const PasswordItem: React.FC<PasswordItemProps> = ({
     const selectedColor = colors[colorIndex];
     
     return (
-      <View style={[styles.serviceIcon, { backgroundColor: selectedColor + '15' }]}>
+      <View style={[styles.serviceIcon, { backgroundColor: selectedColor + '12' }]}>
         <Text style={[styles.serviceIconText, { color: selectedColor }]}>{firstLetter}</Text>
       </View>
     );
@@ -301,7 +297,7 @@ export const PasswordItem: React.FC<PasswordItemProps> = ({
   const getBackgroundColor = () => {
     return translateX.interpolate({
       inputRange: [-screenWidth, -swipeThreshold, 0, swipeThreshold, screenWidth],
-      outputRange: [Colors.error, Colors.error, 'transparent', Colors.primary, Colors.primary],
+      outputRange: [Colors.error, Colors.error, 'transparent', '#2563EB', '#2563EB'],
       extrapolate: 'clamp',
     });
   };
@@ -381,7 +377,7 @@ export const PasswordItem: React.FC<PasswordItemProps> = ({
               <TouchableOpacity onPress={copyPasswordToClipboard} style={styles.fingerprintButton}>
                 <Ionicons 
                   name="finger-print" 
-                  size={20} 
+                  size={18} 
                   color={Colors.text.secondary}
                 />
               </TouchableOpacity>
@@ -472,16 +468,24 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   serviceIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 12,
+    width: 36,
+    height: 36,
+    borderRadius: 10,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
+    shadowColor: Colors.shadow,
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
   },
   serviceIconText: {
     color: Colors.text.inverse,
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: '600',
   },
   serviceInfo: {
@@ -506,14 +510,14 @@ const styles = StyleSheet.create({
     fontWeight: '400',
   },
   fingerprintButton: {
-    padding: 8,
-    borderRadius: 12,
+    padding: 6,
+    borderRadius: 8,
     backgroundColor: Colors.input.background,
     borderWidth: 1,
     borderColor: 'transparent',
   },
   actionText: {
-    color: Colors.text.inverse,
+    color: '#FFFFFF',
     fontSize: 11,
     fontWeight: '500',
     marginTop: 2,

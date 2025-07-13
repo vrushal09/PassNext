@@ -1,22 +1,21 @@
 import React, { useState } from 'react';
 import {
-  View,
+  KeyboardAvoidingView,
+  Platform,
+  SafeAreaView,
+  ScrollView,
+  StatusBar,
+  StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
-  StyleSheet,
-  Alert,
-  KeyboardAvoidingView,
-  Platform,
-  StatusBar,
-  SafeAreaView,
-  ScrollView,
+  View
 } from 'react-native';
-import { authService } from '../services/authService';
-import { useCustomAlert } from '../hooks/useCustomAlert';
-import { CustomAlert } from './CustomAlert';
 import Colors from '../constants/Colors';
 import { theme } from '../constants/Theme';
+import { useCustomAlert } from '../hooks/useCustomAlert';
+import { authService } from '../services/authService';
+import { CustomAlert } from './CustomAlert';
 
 interface LoginScreenProps {
   onNavigateToSignUp: () => void;

@@ -1,14 +1,12 @@
+import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
 import {
-  View,
-  Text,
-  TouchableOpacity,
-  StyleSheet,
-  Modal,
-  Platform,
-  StatusBar,
+    Modal,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
 import Colors from '../constants/Colors';
 
 interface CustomAlertButton {
