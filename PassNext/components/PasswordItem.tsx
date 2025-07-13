@@ -78,7 +78,7 @@ export const PasswordItem: React.FC<PasswordItemProps> = ({
   const getServiceIcon = (serviceName: string) => {
     const service = serviceName.toLowerCase();
     
-    // Define icon mappings for popular services
+    // Define icon mappings for popular services with original brand colors
     const iconMap: { [key: string]: { name: any; color: string } } = {
       google: { name: 'logo-google', color: '#4285F4' },
       gmail: { name: 'mail', color: '#EA4335' },
@@ -180,24 +180,24 @@ export const PasswordItem: React.FC<PasswordItemProps> = ({
     for (const [key, value] of Object.entries(iconMap)) {
       if (service.includes(key)) {
         return (
-          <View style={[styles.serviceIcon, { backgroundColor: value.color + '12' }]}>
-            <Ionicons name={value.name} size={18} color={value.color} />
+          <View style={[styles.serviceIcon, { backgroundColor: 'rgba(255, 255, 255, 0.08)' }]}>
+            <Ionicons name={value.name} size={20} color={value.color} />
           </View>
         );
       }
     }
 
-    // Default fallback with first letter
+    // Default fallback with first letter using minimal colors
     const firstLetter = serviceName.charAt(0).toUpperCase();
-    const colors = [
-      '#4285F4', '#EA4335', '#34A853', '#FBBC05', '#9C27B0', 
-      '#FF9800', '#795548', '#607D8B', '#E91E63', '#00BCD4'
+    const minimalColors = [
+      '#8B949E', '#7C3AED', '#0EA5E9', '#059669', '#D97706', 
+      '#DC2626', '#65A30D', '#EA580C', '#BE185D', '#2563EB'
     ];
-    const colorIndex = serviceName.length % colors.length;
-    const selectedColor = colors[colorIndex];
+    const colorIndex = serviceName.length % minimalColors.length;
+    const selectedColor = minimalColors[colorIndex];
     
     return (
-      <View style={[styles.serviceIcon, { backgroundColor: selectedColor + '12' }]}>
+      <View style={[styles.serviceIcon, { backgroundColor: 'rgba(255, 255, 255, 0.06)' }]}>
         <Text style={[styles.serviceIconText, { color: selectedColor }]}>{firstLetter}</Text>
       </View>
     );
@@ -468,25 +468,25 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   serviceIcon: {
-    width: 36,
-    height: 36,
-    borderRadius: 10,
+    width: 42,
+    height: 42,
+    borderRadius: 14,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
-    shadowColor: Colors.shadow,
+    shadowColor: '#000000',
     shadowOffset: {
       width: 0,
-      height: 1,
+      height: 2,
     },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
     elevation: 2,
   },
   serviceIconText: {
-    color: Colors.text.inverse,
     fontSize: 16,
     fontWeight: '600',
+    letterSpacing: 0.5,
   },
   serviceInfo: {
     flex: 1,
