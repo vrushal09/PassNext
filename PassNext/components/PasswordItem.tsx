@@ -377,8 +377,8 @@ export const PasswordItem: React.FC<PasswordItemProps> = ({
               <TouchableOpacity onPress={copyPasswordToClipboard} style={styles.fingerprintButton}>
                 <Ionicons 
                   name="finger-print" 
-                  size={18} 
-                  color={Colors.text.secondary}
+                  size={20} 
+                  color={Colors.primary}
                 />
               </TouchableOpacity>
             </TouchableOpacity>
@@ -404,15 +404,23 @@ const styles = StyleSheet.create({
   container: {
     marginHorizontal: 20,
     marginBottom: 12,
-    borderRadius: 12,
+    borderRadius: 16,
     overflow: 'hidden',
-    backgroundColor: Colors.input.background,
+    backgroundColor: Colors.surface,
     borderWidth: 1,
-    borderColor: 'transparent',
+    borderColor: Colors.border,
+    shadowColor: '#000000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+    elevation: 3,
   },
   swipeWrapper: {
     position: 'relative',
-    borderRadius: 12,
+    borderRadius: 16,
     overflow: 'hidden',
   },
   swipeBackground: {
@@ -421,13 +429,13 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    borderRadius: 12,
+    borderRadius: 16,
   },
   swipeContainer: {
     position: 'relative',
-    borderRadius: 12,
-    minHeight: 64,
-    backgroundColor: Colors.background,
+    borderRadius: 16,
+    minHeight: 72,
+    backgroundColor: Colors.surface,
     zIndex: 2,
   },
   leftAction: {
@@ -457,9 +465,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   content: {
-    backgroundColor: Colors.background,
-    borderRadius: 12,
-    padding: 12,
+    backgroundColor: Colors.surface,
+    borderRadius: 16,
+    padding: 16,
     zIndex: 2,
     width: '100%',
   },
@@ -468,38 +476,39 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   serviceIcon: {
-    width: 42,
-    height: 42,
-    borderRadius: 14,
+    width: 48,
+    height: 48,
+    borderRadius: 16,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 12,
+    marginRight: 16,
     shadowColor: '#000000',
     shadowOffset: {
       width: 0,
-      height: 2,
+      height: 1,
     },
-    shadowOpacity: 0.06,
-    shadowRadius: 8,
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
     elevation: 2,
   },
   serviceIconText: {
-    fontSize: 16,
-    fontWeight: '600',
+    fontSize: 18,
+    fontWeight: '700',
     letterSpacing: 0.5,
   },
   serviceInfo: {
     flex: 1,
-    paddingRight: 8,
+    paddingRight: 12,
   },
   serviceName: {
-    fontSize: 15,
-    fontWeight: '500',
+    fontSize: 16,
+    fontWeight: '600',
     color: Colors.text.primary,
-    marginBottom: 2,
+    marginBottom: 4,
+    letterSpacing: -0.2,
   },
   serviceUrl: {
-    fontSize: 13,
+    fontSize: 14,
     color: Colors.text.secondary,
     marginBottom: 2,
     fontWeight: '400',
@@ -508,13 +517,18 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: Colors.text.tertiary,
     fontWeight: '400',
+    fontStyle: 'italic',
   },
   fingerprintButton: {
-    padding: 6,
-    borderRadius: 8,
-    backgroundColor: Colors.input.background,
+    padding: 10,
+    borderRadius: 12,
+    backgroundColor: Colors.primary + '15',
     borderWidth: 1,
-    borderColor: 'transparent',
+    borderColor: Colors.primary + '25',
+    minWidth: 40,
+    minHeight: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   actionText: {
     color: '#FFFFFF',

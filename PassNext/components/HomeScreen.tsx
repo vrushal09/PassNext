@@ -18,6 +18,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useCustomAlert } from '../hooks/useCustomAlert';
 import { authService } from '../services/authService';
 import { Password, passwordService } from '../services/passwordService';
+import { securityDashboardService, SecurityMetrics } from '../services/securityDashboardService';
 import { AddPasswordModal } from './AddPasswordModal';
 import { CustomAlert } from './CustomAlert';
 import { EditPasswordModal } from './EditPasswordModal';
@@ -40,6 +41,7 @@ export const HomeScreen: React.FC = () => {
   const [selectedPassword, setSelectedPassword] = useState<Password | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [currentTab, setCurrentTab] = useState('home');
+  const [securityMetrics, setSecurityMetrics] = useState<SecurityMetrics | null>(null);
 
   // Load passwords on component mount
   useEffect(() => {
@@ -72,6 +74,14 @@ export const HomeScreen: React.FC = () => {
     
     if (result.success && result.passwords) {
       setPasswords(result.passwords);
+      
+      // Load security metrics
+      try {
+        const dashboardData = await securityDashboardService.generateSecurityDashboard(result.passwords);
+        setSecurityMetrics(dashboardData.metrics);
+      } catch (error) {
+        console.error('Error loading security metrics:', error);
+      }
     } else {
       showError('Error', result.error || 'Failed to load passwords');
     }
@@ -131,33 +141,79 @@ export const HomeScreen: React.FC = () => {
         <View style={styles.content}>
           {currentTab === 'home' && (
             <>
-              {/* Header */}
+              {/* Modern Header */}
               <View style={styles.homeHeader}>
-                <Text style={styles.appTitle}>PassNext</Text>
+                <View style={styles.headerContent}>
+                  <Text style={styles.appTitle}>PassNext</Text>
+                  <Text style={styles.appSubtitle}>Your secure password manager</Text>
+                </View>
+                <TouchableOpacity 
+                  style={styles.userAvatar}
+                  onPress={() => setCurrentTab('profile')}
+                >
+                  <Ionicons name="person-circle" size={36} color={Colors.primary} />
+                </TouchableOpacity>
               </View>
 
-              {/* Search */}
+              {/* Enhanced Search */}
               <View style={styles.searchSection}>
                 <View style={styles.searchContainer}>
-                  <Ionicons name="search-outline" size={14} color={Colors.text.tertiary} style={styles.searchIcon} />
+                  <Ionicons name="search-outline" size={16} color={Colors.text.tertiary} style={styles.searchIcon} />
                   <TextInput
                     style={styles.searchInput}
-                    placeholder="Search passwords..."
+                    placeholder="Search your passwords..."
                     placeholderTextColor={Colors.text.tertiary}
                     value={searchQuery}
                     onChangeText={setSearchQuery}
                     autoCapitalize="none"
                     autoCorrect={false}
                   />
+                  {searchQuery.length > 0 && (
+                    <TouchableOpacity onPress={() => setSearchQuery('')} style={styles.clearSearchButton}>
+                      <Ionicons name="close-circle" size={18} color={Colors.text.tertiary} />
+                    </TouchableOpacity>
+                  )}
                 </View>
               </View>
 
-              {/* Most used header */}
-              <View style={styles.mostUsedHeader}>
-                <Text style={styles.mostUsedTitle}>Most used</Text>
-                <TouchableOpacity style={styles.expandButton}>
-                  <Ionicons name="chevron-down" size={16} color={Colors.text.secondary} />
-                </TouchableOpacity>
+              {/* Quick Stats */}
+              {passwords.length > 0 && securityMetrics && (
+                <View style={styles.quickStatsContainer}>
+                  <View style={styles.quickStat}>
+                    <Text style={styles.quickStatValue}>{securityMetrics.totalPasswords}</Text>
+                    <Text style={styles.quickStatLabel}>Total</Text>
+                  </View>
+                  <View style={styles.statsDivider} />
+                  <View style={styles.quickStat}>
+                    <Text style={[styles.quickStatValue, { color: Colors.success }]}>
+                      {securityMetrics.totalPasswords - securityMetrics.weakPasswords}
+                    </Text>
+                    <Text style={styles.quickStatLabel}>Secure</Text>
+                  </View>
+                  <View style={styles.statsDivider} />
+                  <View style={styles.quickStat}>
+                    <Text style={[styles.quickStatValue, { color: Colors.warning }]}>
+                      {securityMetrics.weakPasswords}
+                    </Text>
+                    <Text style={styles.quickStatLabel}>Weak</Text>
+                  </View>
+                </View>
+              )}
+
+              {/* Recent Section Header */}
+              <View style={styles.sectionHeader}>
+                <View style={styles.sectionTitleContainer}>
+                  <Text style={styles.sectionMainTitle}>Your Passwords</Text>
+                  <Text style={styles.sectionSubtitle}>
+                    {filteredPasswords.length} {filteredPasswords.length === 1 ? 'password' : 'passwords'}
+                    {searchQuery.length > 0 && ` matching "${searchQuery}"`}
+                  </Text>
+                </View>
+                {passwords.length > 0 && (
+                  <TouchableOpacity style={styles.sortButton}>
+                    <Ionicons name="swap-vertical" size={16} color={Colors.text.secondary} />
+                  </TouchableOpacity>
+                )}
               </View>
 
               {/* Password list */}
@@ -179,15 +235,23 @@ export const HomeScreen: React.FC = () => {
                 }
                 ListEmptyComponent={
                   <View style={styles.emptyState}>
+                    <View style={styles.emptyStateIcon}>
+                      <Ionicons name="key-outline" size={48} color={Colors.text.tertiary} />
+                    </View>
+                    <Text style={styles.emptyStateTitle}>
+                      {loading ? 'Loading your passwords...' : 
+                       searchQuery.length > 0 ? 'No matching passwords' : 'Your vault is empty'}
+                    </Text>
                     <Text style={styles.emptyStateText}>
-                      {loading ? 'Loading passwords...' : 
-                       searchQuery.length > 0 ? 'No passwords match your search' : 'No passwords saved yet'}
+                      {loading ? 'Please wait while we fetch your data' : 
+                       searchQuery.length > 0 ? `No passwords match "${searchQuery}"` : 'Add your first password to get started with secure storage'}
                     </Text>
                     {!loading && searchQuery.length === 0 && (
                       <TouchableOpacity 
                         style={styles.addFirstButton}
                         onPress={() => setShowAddModal(true)}
                       >
+                        <Ionicons name="add" size={20} color={Colors.text.inverse} style={styles.addFirstButtonIcon} />
                         <Text style={styles.addFirstButtonText}>Add Your First Password</Text>
                       </TouchableOpacity>
                     )}
@@ -299,9 +363,24 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   homeHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     paddingHorizontal: 20,
     paddingTop: 40,
-    paddingBottom: 20,
+    paddingBottom: 24,
+  },
+  headerContent: {
+    flex: 1,
+  },
+  userAvatar: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: Colors.surface,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginLeft: 12,
   },
   appTitle: {
     fontSize: 28,
@@ -309,44 +388,31 @@ const styles = StyleSheet.create({
     color: Colors.text.primary,
     letterSpacing: -0.5,
   },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    paddingTop: 20,
-  },
-  headerLeft: {
-    flexDirection: 'row',
-    alignItems: 'baseline',
-  },
-  googleText: {
-    fontSize: 22,
-    fontWeight: '400',
+  appSubtitle: {
+    fontSize: 14,
     color: Colors.text.secondary,
-    marginRight: 4,
-  },
-  passText: {
-    fontSize: 22,
+    marginTop: 4,
     fontWeight: '400',
-    color: Colors.text.secondary,
   },
-  profileButton: {
-    padding: 4,
-  },
-  profileCircle: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: Colors.primary,
+  headerStats: {
     alignItems: 'center',
     justifyContent: 'center',
+    backgroundColor: Colors.primary + '10',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderRadius: 16,
   },
-  profileInitial: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: Colors.text.inverse,
+  statsText: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: Colors.primary,
+  },
+  statsLabel: {
+    fontSize: 11,
+    color: Colors.primary,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    fontWeight: '600',
   },
   searchSection: {
     paddingHorizontal: 20,
@@ -355,107 +421,89 @@ const styles = StyleSheet.create({
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Colors.input.background,
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
+    backgroundColor: Colors.surface,
+    borderRadius: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
     borderWidth: 1,
     borderColor: 'transparent',
-    minHeight: 36,
+    minHeight: 48,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
   },
   searchIcon: {
     marginRight: 8,
   },
   searchInput: {
     flex: 1,
-    fontSize: 14,
+    fontSize: 15,
     color: Colors.text.primary,
     fontWeight: '400',
   },
-  searchMenuButton: {
-    padding: 8,
-    marginLeft: 8,
-    borderRadius: 8,
+  clearSearchButton: {
+    padding: 4,
   },
-  mostUsedHeader: {
+  quickStatsContainer: {
+    flexDirection: 'row',
+    backgroundColor: Colors.surface,
+    marginHorizontal: 20,
+    marginBottom: 24,
+    borderRadius: 16,
+    padding: 20,
+    alignItems: 'center',
+    justifyContent: 'space-around',
+  },
+  quickStat: {
+    alignItems: 'center',
+    flex: 1,
+  },
+  quickStatValue: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: Colors.text.primary,
+    marginBottom: 4,
+  },
+  quickStatLabel: {
+    fontSize: 11,
+    color: Colors.text.secondary,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    fontWeight: '500',
+  },
+  statsDivider: {
+    width: 1,
+    height: 24,
+    backgroundColor: Colors.border,
+    marginHorizontal: 16,
+  },
+  sectionHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 20,
     marginBottom: 16,
   },
-  mostUsedTitle: {
-    fontSize: 15,
-    fontWeight: '500',
-    color: Colors.text.secondary,
-  },
-  expandButton: {
-    padding: 4,
-  },
-  securityContent: {
-    flex: 1,
-    paddingTop: 40,
-  },
-  securityHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingBottom: 24,
-  },
-  securityTitle: {
-    fontSize: 22,
-    fontWeight: '500',
-    color: Colors.text.primary,
-  },
-  securitySection: {
-    backgroundColor: Colors.input.background,
-    marginHorizontal: 20,
-    borderRadius: 12,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: 'transparent',
-  },
-  securityItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.divider,
-  },
-  securityItemIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 12,
-    backgroundColor: Colors.background,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 12,
-  },
-  securityItemContent: {
+  sectionTitleContainer: {
     flex: 1,
   },
-  securityItemTitle: {
-    fontSize: 15,
-    fontWeight: '500',
+  sectionMainTitle: {
+    fontSize: 18,
+    fontWeight: '700',
     color: Colors.text.primary,
     marginBottom: 2,
   },
-  securityItemDescription: {
+  sectionSubtitle: {
     fontSize: 13,
     color: Colors.text.secondary,
     fontWeight: '400',
   },
-  securityStatusBadge: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: Colors.success + '15',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  lastSecurityItem: {
-    borderBottomWidth: 0,
+  sortButton: {
+    padding: 8,
+    borderRadius: 8,
+    backgroundColor: Colors.surface,
   },
   passwordList: {
     flex: 1,
@@ -469,30 +517,55 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingVertical: 40,
+    paddingVertical: 60,
     paddingHorizontal: 32,
   },
+  emptyStateIcon: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: Colors.surface,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 24,
+  },
+  emptyStateTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: Colors.text.primary,
+    textAlign: 'center',
+    marginBottom: 8,
+  },
   emptyStateText: {
-    fontSize: 15,
+    fontSize: 14,
     color: Colors.text.secondary,
     textAlign: 'center',
-    marginBottom: 16,
+    marginBottom: 32,
     fontWeight: '400',
     lineHeight: 20,
   },
   addFirstButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
     backgroundColor: Colors.primary,
-    paddingHorizontal: 28,
+    paddingHorizontal: 24,
     paddingVertical: 14,
-    borderRadius: 12,
+    borderRadius: 16,
     minHeight: 48,
     justifyContent: 'center',
-    alignItems: 'center',
+    shadowColor: Colors.primary,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+  addFirstButtonIcon: {
+    marginRight: 8,
   },
   addFirstButtonText: {
     color: Colors.text.inverse,
     fontSize: 15,
-    fontWeight: '500',
+    fontWeight: '600',
   },
   bottomNav: {
     flexDirection: 'row',
@@ -628,12 +701,6 @@ const styles = StyleSheet.create({
   passwordSection: {
     flex: 1,
     marginBottom: 20,
-  },
-  sectionHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 16,
   },
   addButton: {
     backgroundColor: Colors.primary,
