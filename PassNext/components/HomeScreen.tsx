@@ -42,6 +42,7 @@ export const HomeScreen: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [currentTab, setCurrentTab] = useState('home');
   const [securityMetrics, setSecurityMetrics] = useState<SecurityMetrics | null>(null);
+  const [sortBy, setSortBy] = useState<'name' | 'date' | 'recent'>('recent');
 
   // Load passwords on component mount
   useEffect(() => {
@@ -63,8 +64,21 @@ export const HomeScreen: React.FC = () => {
       );
     }
     
+    // Sort passwords
+    filtered = filtered.sort((a, b) => {
+      switch (sortBy) {
+        case 'name':
+          return a.service.localeCompare(b.service);
+        case 'date':
+          return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+        case 'recent':
+        default:
+          return new Date(b.updatedAt || b.createdAt).getTime() - new Date(a.updatedAt || a.createdAt).getTime();
+      }
+    });
+    
     setFilteredPasswords(filtered);
-  }, [searchQuery, passwords]);
+  }, [searchQuery, passwords, sortBy]);
 
   const loadPasswords = async () => {
     if (!user) return;
@@ -118,6 +132,13 @@ export const HomeScreen: React.FC = () => {
     setCurrentTab(tab);
   };
 
+  const handleSortPress = () => {
+    const sortOptions = ['recent', 'name', 'date'] as const;
+    const currentIndex = sortOptions.indexOf(sortBy);
+    const nextIndex = (currentIndex + 1) % sortOptions.length;
+    setSortBy(sortOptions[nextIndex]);
+  };
+
   const handleLogout = async () => {
     showDestructiveConfirm(
       'Logout',
@@ -141,7 +162,7 @@ export const HomeScreen: React.FC = () => {
         <View style={styles.content}>
           {currentTab === 'home' && (
             <>
-              {/* Modern Header */}
+              {/* Fixed Header */}
               <View style={styles.homeHeader}>
                 <View style={styles.headerContent}>
                   <Text style={styles.appTitle}>PassNext</Text>
@@ -155,68 +176,7 @@ export const HomeScreen: React.FC = () => {
                 </TouchableOpacity>
               </View>
 
-              {/* Enhanced Search */}
-              <View style={styles.searchSection}>
-                <View style={styles.searchContainer}>
-                  <Ionicons name="search-outline" size={16} color={Colors.text.tertiary} style={styles.searchIcon} />
-                  <TextInput
-                    style={styles.searchInput}
-                    placeholder="Search your passwords..."
-                    placeholderTextColor={Colors.text.tertiary}
-                    value={searchQuery}
-                    onChangeText={setSearchQuery}
-                    autoCapitalize="none"
-                    autoCorrect={false}
-                  />
-                  {searchQuery.length > 0 && (
-                    <TouchableOpacity onPress={() => setSearchQuery('')} style={styles.clearSearchButton}>
-                      <Ionicons name="close-circle" size={18} color={Colors.text.tertiary} />
-                    </TouchableOpacity>
-                  )}
-                </View>
-              </View>
-
-              {/* Quick Stats */}
-              {passwords.length > 0 && securityMetrics && (
-                <View style={styles.quickStatsContainer}>
-                  <View style={styles.quickStat}>
-                    <Text style={styles.quickStatValue}>{securityMetrics.totalPasswords}</Text>
-                    <Text style={styles.quickStatLabel}>Total</Text>
-                  </View>
-                  <View style={styles.statsDivider} />
-                  <View style={styles.quickStat}>
-                    <Text style={[styles.quickStatValue, { color: Colors.success }]}>
-                      {securityMetrics.totalPasswords - securityMetrics.weakPasswords}
-                    </Text>
-                    <Text style={styles.quickStatLabel}>Secure</Text>
-                  </View>
-                  <View style={styles.statsDivider} />
-                  <View style={styles.quickStat}>
-                    <Text style={[styles.quickStatValue, { color: Colors.warning }]}>
-                      {securityMetrics.weakPasswords}
-                    </Text>
-                    <Text style={styles.quickStatLabel}>Weak</Text>
-                  </View>
-                </View>
-              )}
-
-              {/* Recent Section Header */}
-              <View style={styles.sectionHeader}>
-                <View style={styles.sectionTitleContainer}>
-                  <Text style={styles.sectionMainTitle}>Your Passwords</Text>
-                  <Text style={styles.sectionSubtitle}>
-                    {filteredPasswords.length} {filteredPasswords.length === 1 ? 'password' : 'passwords'}
-                    {searchQuery.length > 0 && ` matching "${searchQuery}"`}
-                  </Text>
-                </View>
-                {passwords.length > 0 && (
-                  <TouchableOpacity style={styles.sortButton}>
-                    <Ionicons name="swap-vertical" size={16} color={Colors.text.secondary} />
-                  </TouchableOpacity>
-                )}
-              </View>
-
-              {/* Password list */}
+              {/* Password list with header content */}
               <FlatList
                 data={filteredPasswords}
                 keyExtractor={(item) => item.id!}
@@ -232,6 +192,73 @@ export const HomeScreen: React.FC = () => {
                 contentContainerStyle={styles.listContent}
                 refreshControl={
                   <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
+                }
+                ListHeaderComponent={
+                  <View style={styles.scrollableHeader}>
+                    {/* Enhanced Search */}
+                    <View style={styles.searchSection}>
+                      <View style={styles.searchContainer}>
+                        <Ionicons name="search-outline" size={16} color={Colors.text.tertiary} style={styles.searchIcon} />
+                        <TextInput
+                          style={styles.searchInput}
+                          placeholder="Search your passwords..."
+                          placeholderTextColor={Colors.text.tertiary}
+                          value={searchQuery}
+                          onChangeText={setSearchQuery}
+                          autoCapitalize="none"
+                          autoCorrect={false}
+                        />
+                        {searchQuery.length > 0 && (
+                          <TouchableOpacity onPress={() => setSearchQuery('')} style={styles.clearSearchButton}>
+                            <Ionicons name="close-circle" size={18} color={Colors.text.tertiary} />
+                          </TouchableOpacity>
+                        )}
+                      </View>
+                    </View>
+
+                    {/* Quick Stats */}
+                    {passwords.length > 0 && securityMetrics && (
+                      <View style={styles.quickStatsContainer}>
+                        <View style={styles.quickStat}>
+                          <Text style={styles.quickStatValue}>{securityMetrics.totalPasswords}</Text>
+                          <Text style={styles.quickStatLabel}>Total</Text>
+                        </View>
+                        <View style={styles.statsDivider} />
+                        <View style={styles.quickStat}>
+                          <Text style={[styles.quickStatValue, { color: Colors.success }]}>
+                            {securityMetrics.totalPasswords - securityMetrics.weakPasswords}
+                          </Text>
+                          <Text style={styles.quickStatLabel}>Secure</Text>
+                        </View>
+                        <View style={styles.statsDivider} />
+                        <View style={styles.quickStat}>
+                          <Text style={[styles.quickStatValue, { color: Colors.warning }]}>
+                            {securityMetrics.weakPasswords}
+                          </Text>
+                          <Text style={styles.quickStatLabel}>Weak</Text>
+                        </View>
+                      </View>
+                    )}
+
+                    {/* Section Header */}
+                    <View style={styles.sectionHeader}>
+                      <View style={styles.sectionTitleContainer}>
+                        <Text style={styles.sectionMainTitle}>Your Passwords</Text>
+                        <Text style={styles.sectionSubtitle}>
+                          {filteredPasswords.length} {filteredPasswords.length === 1 ? 'password' : 'passwords'}
+                          {searchQuery.length > 0 && ` matching "${searchQuery}"`}
+                        </Text>
+                      </View>
+                      {passwords.length > 0 && (
+                        <TouchableOpacity style={styles.sortButton} onPress={handleSortPress}>
+                          <Ionicons name="swap-vertical" size={16} color={Colors.text.secondary} />
+                          <Text style={styles.sortButtonText}>
+                            {sortBy === 'recent' ? 'Recent' : sortBy === 'name' ? 'Name' : 'Date'}
+                          </Text>
+                        </TouchableOpacity>
+                      )}
+                    </View>
+                  </View>
                 }
                 ListEmptyComponent={
                   <View style={styles.emptyState}>
@@ -417,6 +444,7 @@ const styles = StyleSheet.create({
   searchSection: {
     paddingHorizontal: 20,
     marginBottom: 16,
+    marginTop: 8,
   },
   searchContainer: {
     flexDirection: 'row',
@@ -501,17 +529,26 @@ const styles = StyleSheet.create({
     fontWeight: '400',
   },
   sortButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
     padding: 8,
     borderRadius: 8,
     backgroundColor: Colors.surface,
+    gap: 4,
+  },
+  sortButtonText: {
+    fontSize: 12,
+    color: Colors.text.secondary,
+    fontWeight: '500',
   },
   passwordList: {
     flex: 1,
-    paddingHorizontal: 4,
+  },
+  scrollableHeader: {
+    marginBottom: 8,
   },
   listContent: {
-    paddingBottom: 16,
-    paddingTop: 4,
+    paddingBottom: 100,
   },
   emptyState: {
     flex: 1,
