@@ -2,14 +2,12 @@ import { Ionicons } from '@expo/vector-icons';
 import React, { useEffect, useState } from 'react';
 import {
     Alert,
-    FlatList,
-    Modal,
     RefreshControl,
     ScrollView,
     StyleSheet,
     Text,
     TouchableOpacity,
-    View,
+    View
 } from 'react-native';
 import Colors from '../constants/Colors';
 import { useAuth } from '../contexts/AuthContext';
@@ -33,7 +31,6 @@ export const SecurityDashboard: React.FC<SecurityDashboardProps> = ({
   const [dashboardData, setDashboardData] = useState<SecurityDashboardData | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [showAlertsModal, setShowAlertsModal] = useState(false);
   const [passwords, setPasswords] = useState<Password[]>([]);
   const [showAllPasswords, setShowAllPasswords] = useState(false);
 
@@ -210,14 +207,6 @@ export const SecurityDashboard: React.FC<SecurityDashboardProps> = ({
             <View style={[styles.riskLevel, { backgroundColor: getRiskLevelColor(dashboardData.riskLevel) }]}>
               <Text style={styles.riskLevelText}>{dashboardData.riskLevel.toUpperCase()}</Text>
             </View>
-            <TouchableOpacity onPress={() => setShowAlertsModal(true)} style={styles.alertButton}>
-              <Ionicons name="notifications-outline" size={20} color={Colors.text.primary} />
-              {dashboardData.alerts.length > 0 && (
-                <View style={styles.alertBadge}>
-                  <Text style={styles.alertBadgeText}>{dashboardData.alerts.length}</Text>
-                </View>
-              )}
-            </TouchableOpacity>
           </View>
         </View>
       </View>
@@ -296,39 +285,6 @@ export const SecurityDashboard: React.FC<SecurityDashboardProps> = ({
           </TouchableOpacity>
         )}
       </View>
-
-      {/* Compact Alerts Modal */}
-      <Modal
-        visible={showAlertsModal}
-        animationType="slide"
-        presentationStyle="pageSheet"
-      >
-        <View style={styles.modalContainer}>
-          <View style={styles.modalHeader}>
-            <Text style={styles.modalTitle}>Security Alerts</Text>
-            <TouchableOpacity onPress={() => setShowAlertsModal(false)}>
-              <Ionicons name="close" size={20} color={Colors.text.primary} />
-            </TouchableOpacity>
-          </View>
-          <FlatList
-            data={dashboardData.alerts}
-            keyExtractor={(item) => item.id}
-            renderItem={({ item }) => (
-              <CompactAlertCard
-                alert={item}
-                onAction={(action) => handleAlertAction(item, action)}
-              />
-            )}
-            showsVerticalScrollIndicator={false}
-            ListEmptyComponent={
-              <View style={styles.emptyState}>
-                <Ionicons name="shield-checkmark" size={32} color={Colors.success} />
-                <Text style={styles.emptyStateText}>No security alerts</Text>
-              </View>
-            }
-          />
-        </View>
-      </Modal>
       
       <CustomAlert
         visible={alertState.visible}
@@ -608,26 +564,6 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '700',
   },
-  alertButton: {
-    padding: 4,
-    position: 'relative',
-  },
-  alertBadge: {
-    position: 'absolute',
-    top: -2,
-    right: -2,
-    backgroundColor: Colors.error,
-    borderRadius: 8,
-    minWidth: 16,
-    height: 16,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  alertBadgeText: {
-    color: 'white',
-    fontSize: 10,
-    fontWeight: '600',
-  },
   metricsContainer: {
     marginHorizontal: 16,
     marginBottom: 20,
@@ -796,33 +732,6 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: Colors.text.secondary,
     fontWeight: '500',
-  },
-  modalContainer: {
-    flex: 1,
-    backgroundColor: Colors.background,
-  },
-  modalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
-  },
-  modalTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: Colors.text.primary,
-  },
-  emptyState: {
-    alignItems: 'center',
-    padding: 40,
-  },
-  emptyStateText: {
-    fontSize: 16,
-    color: Colors.text.secondary,
-    marginTop: 12,
   },
   alertCard: {
     backgroundColor: Colors.surface,

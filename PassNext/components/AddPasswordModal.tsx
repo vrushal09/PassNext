@@ -45,7 +45,34 @@ export const AddPasswordModal: React.FC<AddPasswordModalProps> = ({
   const [hasExpiryDate, setHasExpiryDate] = useState(false);
   const [showNotes, setShowNotes] = useState(false);
   const [showExpirySettings, setShowExpirySettings] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const { alertState, hideAlert, showSuccess, showError } = useCustomAlert();
+
+  const generatePassword = () => {
+    const length = 16;
+    const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()";
+    let password = "";
+    
+    // Ensure at least one character from each category
+    const lowercase = "abcdefghijklmnopqrstuvwxyz";
+    const uppercase = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    const numbers = "0123456789";
+    const symbols = "!@#$%^&*()";
+    
+    password += lowercase[Math.floor(Math.random() * lowercase.length)];
+    password += uppercase[Math.floor(Math.random() * uppercase.length)];
+    password += numbers[Math.floor(Math.random() * numbers.length)];
+    password += symbols[Math.floor(Math.random() * symbols.length)];
+    
+    // Fill the rest randomly
+    for (let i = password.length; i < length; i++) {
+      password += charset[Math.floor(Math.random() * charset.length)];
+    }
+    
+    // Shuffle the password
+    const shuffled = password.split('').sort(() => Math.random() - 0.5).join('');
+    setFormData({ ...formData, password: shuffled });
+  };
 
   const handleSubmit = async () => {
     if (!formData.service.trim() || !formData.account.trim() || !formData.password.trim()) {
@@ -144,18 +171,35 @@ export const AddPasswordModal: React.FC<AddPasswordModalProps> = ({
                   onChangeText={(text) => setFormData({ ...formData, password: text })}
                   placeholder="Enter password"
                   placeholderTextColor={Colors.input.placeholder}
-                  secureTextEntry
+                  secureTextEntry={!showPassword}
                 />
+                <TouchableOpacity 
+                  style={styles.togglePasswordButton}
+                  onPress={() => setShowPassword(!showPassword)}
+                >
+                  <Ionicons 
+                    name={showPassword ? "eye-off-outline" : "eye-outline"} 
+                    size={18} 
+                    color={Colors.text.secondary} 
+                  />
+                </TouchableOpacity>
+                <TouchableOpacity 
+                  style={styles.generateButton}
+                  onPress={generatePassword}
+                >
+                  <Ionicons name="refresh" size={16} color={Colors.primary} />
+                </TouchableOpacity>
               </View>
               
-              {/* Compact Password Strength Meter */}
+              {/* Enhanced Password Strength Meter */}
               {formData.password.length > 0 && (
-                <PasswordStrengthMeter
-                  password={formData.password}
-                  userInputs={[formData.service, formData.account]}
-                  showSuggestions={false}
-                  style={styles.strengthMeter}
-                />
+                <View style={styles.strengthMeterContainer}>
+                  <PasswordStrengthMeter
+                    password={formData.password}
+                    userInputs={[formData.service, formData.account]}
+                    showSuggestions={true}
+                  />
+                </View>
               )}
             </View>
 
@@ -350,9 +394,21 @@ const styles = StyleSheet.create({
     color: Colors.text.primary,
     fontWeight: '400',
   },
-  strengthMeter: {
-    marginTop: 8,
-    marginBottom: 4,
+  strengthMeterContainer: {
+    marginTop: 4,
+  },
+  generateButton: {
+    padding: 12,
+    borderRadius: 8,
+    backgroundColor: Colors.primary + '15',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  togglePasswordButton: {
+    padding: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 4,
   },
   textAreaContainer: {
     alignItems: 'flex-start',

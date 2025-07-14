@@ -1,20 +1,22 @@
 import { Ionicons } from '@expo/vector-icons';
 import React, { useEffect, useState } from 'react';
 import {
-  FlatList,
-  Platform,
-  RefreshControl,
-  SafeAreaView,
-  StatusBar,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
+    FlatList,
+    Platform,
+    RefreshControl,
+    SafeAreaView,
+    StatusBar,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
 } from 'react-native';
 import Colors from '../constants/Colors';
 import { useAuth } from '../contexts/AuthContext';
 import { useCustomAlert } from '../hooks/useCustomAlert';
 import { notificationService } from '../services/notificationService';
+import { passwordService } from '../services/passwordService';
+import { SecurityAlert, securityDashboardService } from '../services/securityDashboardService';
 import { CustomAlert } from './CustomAlert';
 
 interface NotificationItem {
@@ -44,10 +46,32 @@ export const NotificationScreen: React.FC = () => {
     try {
       setLoading(true);
       
+      // Load user's passwords first
+      const passwordsResult = await passwordService.getPasswords(user?.uid || '');
+      let realNotifications: NotificationItem[] = [];
+      
+      if (passwordsResult.success && passwordsResult.passwords) {
+        // Generate security dashboard data
+        const dashboardResult = await securityDashboardService.generateSecurityDashboard(
+          passwordsResult.passwords
+        );
+        
+        // Convert security alerts to notifications
+        realNotifications = dashboardResult.alerts.map((alert: SecurityAlert, index: number) => ({
+          id: alert.id,
+          title: alert.title,
+          message: alert.message,
+          type: alert.type as NotificationItem['type'],
+          timestamp: new Date(Date.now() - (index * 30 * 60 * 1000)), // Recent alerts
+          read: false,
+          data: { passwordId: alert.passwordId, serviceName: alert.serviceName },
+        }));
+      }
+      
       // Get scheduled notifications
       const scheduledNotifications = await notificationService.getScheduledNotifications();
       
-      // Transform to our format
+      // Transform scheduled notifications to our format
       const transformedNotifications: NotificationItem[] = scheduledNotifications.map((notification, index) => ({
         id: notification.identifier,
         title: notification.content.title || 'Notification',
@@ -58,35 +82,19 @@ export const NotificationScreen: React.FC = () => {
         data: notification.content.data,
       }));
 
-      // Add some mock historical notifications for demo
-      const mockHistoricalNotifications: NotificationItem[] = [
+      // Add some sample historical notifications if no real ones exist
+      const sampleNotifications: NotificationItem[] = realNotifications.length === 0 ? [
         {
-          id: '1',
-          title: 'Password Updated',
-          message: 'Your password for Gmail has been successfully updated.',
+          id: 'sample-1',
+          title: 'Welcome to PassNext',
+          message: 'Your secure password manager is ready to use.',
           type: 'general',
-          timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000), // 2 hours ago
-          read: true,
-        },
-        {
-          id: '2',
-          title: 'Security Alert',
-          message: 'Your password for Facebook may have been compromised in a data breach.',
-          type: 'breach_alert',
           timestamp: new Date(Date.now() - 24 * 60 * 60 * 1000), // 1 day ago
-          read: false,
-        },
-        {
-          id: '3',
-          title: 'Weak Password Detected',
-          message: 'Your password for Twitter is weak and should be updated.',
-          type: 'weak_password',
-          timestamp: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000), // 3 days ago
           read: true,
         },
-      ];
+      ] : [];
 
-      const allNotifications = [...transformedNotifications, ...mockHistoricalNotifications]
+      const allNotifications = [...realNotifications, ...transformedNotifications, ...sampleNotifications]
         .sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
 
       setNotifications(allNotifications);

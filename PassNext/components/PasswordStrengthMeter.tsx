@@ -159,10 +159,10 @@ interface RequirementItemProps {
 
 const RequirementItem: React.FC<RequirementItemProps> = ({ text, met }) => (
   <View style={styles.requirementItem}>
-    <View style={[styles.requirementIcon, { backgroundColor: met ? Colors.success : Colors.error }]}>
-      <Text style={styles.requirementIconText}>{met ? '✓' : '✗'}</Text>
+    <View style={[styles.requirementIcon, { backgroundColor: met ? Colors.success : Colors.text.tertiary }]}>
+      <View style={[styles.requirementDot, { backgroundColor: met ? 'white' : Colors.text.secondary }]} />
     </View>
-    <Text style={[styles.requirementText, { color: met ? Colors.success : Colors.text.secondary }]}>
+    <Text style={[styles.requirementText, { color: met ? Colors.text.primary : Colors.text.secondary }]}>
       {text}
     </Text>
   </View>
@@ -171,80 +171,89 @@ const RequirementItem: React.FC<RequirementItemProps> = ({ text, met }) => (
 const styles = StyleSheet.create({
   container: {
     backgroundColor: Colors.surface,
-    borderRadius: 16,
-    padding: 20,
-    marginVertical: 12,
-    borderWidth: 1,
+    borderRadius: 12,
+    padding: 16,
+    marginVertical: 8,
+    borderWidth: 0,
     borderColor: Colors.border,
   },
   meterContainer: {
     marginBottom: 16,
   },
   label: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '600',
-    color: Colors.text.primary,
-    marginBottom: 12,
+    color: Colors.text.secondary,
+    marginBottom: 8,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
   meterTrack: {
-    height: 6,
+    height: 4,
     backgroundColor: Colors.border,
-    borderRadius: 3,
+    borderRadius: 2,
     overflow: 'hidden',
   },
   meterFill: {
     height: '100%',
-    borderRadius: 3,
+    borderRadius: 2,
   },
   strengthInfo: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginTop: 12,
+    marginTop: 8,
   },
   strengthText: {
-    fontSize: 15,
+    fontSize: 14,
     fontWeight: '600',
   },
   scoreText: {
-    fontSize: 13,
-    color: Colors.text.secondary,
+    fontSize: 12,
+    color: Colors.text.tertiary,
     fontWeight: '500',
   },
   indicatorsContainer: {
     flexDirection: 'row',
-    gap: 6,
-    marginBottom: 20,
+    gap: 4,
+    marginBottom: 16,
   },
   indicator: {
     flex: 1,
-    height: 6,
-    borderRadius: 3,
+    height: 4,
+    borderRadius: 2,
     backgroundColor: Colors.border,
   },
   requirementsContainer: {
-    marginTop: 16,
+    marginTop: 12,
   },
   requirementsTitle: {
-    fontSize: 15,
+    fontSize: 13,
     fontWeight: '600',
-    color: Colors.text.primary,
-    marginBottom: 12,
+    color: Colors.text.secondary,
+    marginBottom: 10,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
   requirementsList: {
-    gap: 10,
+    gap: 8,
   },
   requirementItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    gap: 10,
   },
   requirementIcon: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
+    width: 16,
+    height: 16,
+    borderRadius: 8,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  requirementDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
   },
   requirementIconText: {
     fontSize: 11,
@@ -252,41 +261,43 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   requirementText: {
-    fontSize: 14,
+    fontSize: 13,
     flex: 1,
     fontWeight: '500',
   },
   suggestionsContainer: {
-    marginTop: 16,
-    backgroundColor: Colors.warning + '10',
-    padding: 16,
-    borderRadius: 12,
+    marginTop: 12,
+    backgroundColor: Colors.warning + '08',
+    padding: 12,
+    borderRadius: 8,
     borderWidth: 1,
-    borderColor: Colors.warning + '20',
+    borderColor: Colors.warning + '15',
   },
   suggestionsTitle: {
-    fontSize: 15,
+    fontSize: 13,
     fontWeight: '600',
     color: Colors.warning,
-    marginBottom: 12,
+    marginBottom: 8,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
   suggestionItem: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    gap: 8,
-    marginBottom: 6,
+    gap: 6,
+    marginBottom: 4,
   },
   suggestionBullet: {
-    fontSize: 14,
+    fontSize: 12,
     color: Colors.warning,
-    marginTop: 2,
+    marginTop: 1,
     fontWeight: '600',
   },
   suggestionText: {
-    fontSize: 14,
+    fontSize: 13,
     color: Colors.text.primary,
     flex: 1,
-    lineHeight: 20,
+    lineHeight: 18,
   },
 });
 

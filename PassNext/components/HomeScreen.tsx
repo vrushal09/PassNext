@@ -224,6 +224,7 @@ export const HomeScreen: React.FC = () => {
             onPress={() => handleTabPress('home')}
           >
             <Ionicons name="apps" size={22} color={currentTab === 'home' ? Colors.primary : Colors.text.secondary} />
+            <Text style={[styles.navText, currentTab === 'home' && styles.activeNavText]}>Home</Text>
           </TouchableOpacity>
           
           <TouchableOpacity 
@@ -231,14 +232,7 @@ export const HomeScreen: React.FC = () => {
             onPress={() => handleTabPress('notifications')}
           >
             <Ionicons name="notifications" size={22} color={currentTab === 'notifications' ? Colors.primary : Colors.text.secondary} />
-          </TouchableOpacity>
-          
-          {/* Add Password Button */}
-          <TouchableOpacity 
-            style={styles.addNavButton}
-            onPress={() => setShowAddModal(true)}
-          >
-            <Ionicons name="add" size={24} color={Colors.text.inverse} />
+            <Text style={[styles.navText, currentTab === 'notifications' && styles.activeNavText]}>Notifications</Text>
           </TouchableOpacity>
           
           <TouchableOpacity 
@@ -246,8 +240,17 @@ export const HomeScreen: React.FC = () => {
             onPress={() => handleTabPress('security')}
           >
             <Ionicons name="shield-checkmark" size={22} color={currentTab === 'security' ? Colors.primary : Colors.text.secondary} />
+            <Text style={[styles.navText, currentTab === 'security' && styles.activeNavText]}>Security</Text>
           </TouchableOpacity>
         </View>
+
+        {/* Floating Add Button */}
+        <TouchableOpacity 
+          style={styles.floatingAddButton}
+          onPress={() => setShowAddModal(true)}
+        >
+          <Ionicons name="add" size={28} color={Colors.text.inverse} />
+        </TouchableOpacity>
 
         {/* Modals */}
         <AddPasswordModal
@@ -487,13 +490,34 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '500',
   },
+  bottomNav: {
+    flexDirection: 'row',
+    backgroundColor: Colors.background,
+    paddingVertical: 16,
+    paddingHorizontal: 20,
+    borderTopWidth: 1,
+    borderTopColor: Colors.divider,
+    justifyContent: 'space-around',
+  },
+  navItem: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 8,
+    paddingHorizontal: 20,
+    borderRadius: 12,
+    minWidth: 60,
+    minHeight: 48,
+  },
+  activeNavItem: {
+    backgroundColor: Colors.primary + '10',
+  },
   floatingAddButton: {
     position: 'absolute',
     bottom: 90,
-    right: 20,
-    width: 56,
-    height: 56,
-    borderRadius: 16,
+    right: 24,
+    width: 60,
+    height: 60,
+    borderRadius: 30,
     backgroundColor: Colors.primary,
     justifyContent: 'center',
     alignItems: 'center',
@@ -505,37 +529,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 8,
-  },
-  bottomNav: {
-    flexDirection: 'row',
-    backgroundColor: Colors.background,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderTopWidth: 1,
-    borderTopColor: Colors.divider,
-    justifyContent: 'space-around',
-  },
-  navItem: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    borderRadius: 12,
-    minWidth: 40,
-    minHeight: 40,
-  },
-  activeNavItem: {
-    backgroundColor: Colors.primary + '10',
-  },
-  addNavButton: {
-    backgroundColor: Colors.primary,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    borderRadius: 12,
-    minWidth: 40,
-    minHeight: 40,
   },
   navText: {
     fontSize: 12,
