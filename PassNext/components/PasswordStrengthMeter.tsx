@@ -99,8 +99,8 @@ export const PasswordStrengthMeter: React.FC<PasswordStrengthMeterProps> = ({
             style={[
               styles.indicator,
               {
-                backgroundColor: level <= strength.score ? strength.color : '#E0E0E0',
-                opacity: level <= strength.score ? 1 : 0.3,
+                backgroundColor: level <= strength.score ? strength.color : Colors.border,
+                opacity: level <= strength.score ? 1 : 0.4,
               },
             ]}
           />
@@ -159,10 +159,10 @@ interface RequirementItemProps {
 
 const RequirementItem: React.FC<RequirementItemProps> = ({ text, met }) => (
   <View style={styles.requirementItem}>
-    <View style={[styles.requirementIcon, { backgroundColor: met ? '#00CC44' : '#FF4444' }]}>
+    <View style={[styles.requirementIcon, { backgroundColor: met ? Colors.success : Colors.error }]}>
       <Text style={styles.requirementIconText}>{met ? '✓' : '✗'}</Text>
     </View>
-    <Text style={[styles.requirementText, { color: met ? '#00CC44' : '#666' }]}>
+    <Text style={[styles.requirementText, { color: met ? Colors.success : Colors.text.secondary }]}>
       {text}
     </Text>
   </View>
@@ -171,116 +171,122 @@ const RequirementItem: React.FC<RequirementItemProps> = ({ text, met }) => (
 const styles = StyleSheet.create({
   container: {
     backgroundColor: Colors.surface,
-    borderRadius: 12,
-    padding: 16,
-    marginVertical: 8,
+    borderRadius: 16,
+    padding: 20,
+    marginVertical: 12,
     borderWidth: 1,
     borderColor: Colors.border,
   },
   meterContainer: {
-    marginBottom: 12,
+    marginBottom: 16,
   },
   label: {
     fontSize: 14,
     fontWeight: '600',
     color: Colors.text.primary,
-    marginBottom: 8,
+    marginBottom: 12,
   },
   meterTrack: {
-    height: 8,
-    backgroundColor: '#E0E0E0',
-    borderRadius: 4,
+    height: 6,
+    backgroundColor: Colors.border,
+    borderRadius: 3,
     overflow: 'hidden',
   },
   meterFill: {
     height: '100%',
-    borderRadius: 4,
+    borderRadius: 3,
   },
   strengthInfo: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginTop: 6,
+    marginTop: 12,
   },
   strengthText: {
-    fontSize: 14,
+    fontSize: 15,
     fontWeight: '600',
   },
   scoreText: {
-    fontSize: 12,
+    fontSize: 13,
     color: Colors.text.secondary,
+    fontWeight: '500',
   },
   indicatorsContainer: {
     flexDirection: 'row',
-    gap: 4,
-    marginBottom: 16,
+    gap: 6,
+    marginBottom: 20,
   },
   indicator: {
     flex: 1,
-    height: 4,
-    borderRadius: 2,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: Colors.border,
   },
   requirementsContainer: {
-    marginTop: 12,
+    marginTop: 16,
   },
   requirementsTitle: {
-    fontSize: 14,
+    fontSize: 15,
     fontWeight: '600',
     color: Colors.text.primary,
-    marginBottom: 8,
+    marginBottom: 12,
   },
   requirementsList: {
-    gap: 6,
+    gap: 10,
   },
   requirementItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: 12,
   },
   requirementIcon: {
-    width: 16,
-    height: 16,
-    borderRadius: 8,
+    width: 20,
+    height: 20,
+    borderRadius: 10,
     alignItems: 'center',
     justifyContent: 'center',
   },
   requirementIconText: {
-    fontSize: 10,
+    fontSize: 11,
     color: 'white',
     fontWeight: 'bold',
   },
   requirementText: {
-    fontSize: 12,
+    fontSize: 14,
     flex: 1,
+    fontWeight: '500',
   },
   suggestionsContainer: {
-    marginTop: 12,
-    backgroundColor: '#FFF8E1',
-    padding: 12,
-    borderRadius: 8,
+    marginTop: 16,
+    backgroundColor: Colors.warning + '10',
+    padding: 16,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: Colors.warning + '20',
   },
   suggestionsTitle: {
-    fontSize: 14,
+    fontSize: 15,
     fontWeight: '600',
-    color: '#F57C00',
-    marginBottom: 8,
+    color: Colors.warning,
+    marginBottom: 12,
   },
   suggestionItem: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    gap: 6,
-    marginBottom: 4,
+    gap: 8,
+    marginBottom: 6,
   },
   suggestionBullet: {
-    fontSize: 12,
-    color: '#F57C00',
+    fontSize: 14,
+    color: Colors.warning,
     marginTop: 2,
+    fontWeight: '600',
   },
   suggestionText: {
-    fontSize: 12,
-    color: '#E65100',
+    fontSize: 14,
+    color: Colors.text.primary,
     flex: 1,
-    lineHeight: 16,
+    lineHeight: 20,
   },
 });
 

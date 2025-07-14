@@ -21,6 +21,7 @@ import { Password, passwordService } from '../services/passwordService';
 import { AddPasswordModal } from './AddPasswordModal';
 import { CustomAlert } from './CustomAlert';
 import { EditPasswordModal } from './EditPasswordModal';
+import NotificationScreen from './NotificationScreen';
 import { PasswordItem } from './PasswordItem';
 import SecurityDashboard from './SecurityDashboard';
 
@@ -210,6 +211,10 @@ export const HomeScreen: React.FC = () => {
               onDeletePassword={(password) => handleDeletePassword(password.id || '')}
             />
           )}
+
+          {currentTab === 'notifications' && (
+            <NotificationScreen />
+          )}
         </View>
 
         {/* Bottom Navigation */}
@@ -219,6 +224,13 @@ export const HomeScreen: React.FC = () => {
             onPress={() => handleTabPress('home')}
           >
             <Ionicons name="apps" size={22} color={currentTab === 'home' ? Colors.primary : Colors.text.secondary} />
+          </TouchableOpacity>
+          
+          <TouchableOpacity 
+            style={[styles.navItem, currentTab === 'notifications' && styles.activeNavItem]}
+            onPress={() => handleTabPress('notifications')}
+          >
+            <Ionicons name="notifications" size={22} color={currentTab === 'notifications' ? Colors.primary : Colors.text.secondary} />
           </TouchableOpacity>
           
           {/* Add Password Button */}
@@ -497,8 +509,8 @@ const styles = StyleSheet.create({
   bottomNav: {
     flexDirection: 'row',
     backgroundColor: Colors.background,
-    paddingVertical: 14,
-    paddingHorizontal: 20,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
     borderTopWidth: 1,
     borderTopColor: Colors.divider,
     justifyContent: 'space-around',
@@ -506,11 +518,11 @@ const styles = StyleSheet.create({
   navItem: {
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 10,
-    paddingHorizontal: 20,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
     borderRadius: 12,
-    minWidth: 44,
-    minHeight: 44,
+    minWidth: 40,
+    minHeight: 40,
   },
   activeNavItem: {
     backgroundColor: Colors.primary + '10',
@@ -519,11 +531,11 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 10,
-    paddingHorizontal: 20,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
     borderRadius: 12,
-    minWidth: 44,
-    minHeight: 44,
+    minWidth: 40,
+    minHeight: 40,
   },
   navText: {
     fontSize: 12,

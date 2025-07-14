@@ -352,6 +352,7 @@ const styles = StyleSheet.create({
   },
   strengthMeter: {
     marginTop: 8,
+    marginBottom: 4,
   },
   textAreaContainer: {
     alignItems: 'flex-start',
