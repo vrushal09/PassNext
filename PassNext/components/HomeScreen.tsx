@@ -22,6 +22,7 @@ import { AddPasswordModal } from './AddPasswordModal';
 import { CustomAlert } from './CustomAlert';
 import { EditPasswordModal } from './EditPasswordModal';
 import { PasswordItem } from './PasswordItem';
+import SecurityDashboard from './SecurityDashboard';
 
 export const HomeScreen: React.FC = () => {
   const { user } = useAuth();
@@ -204,60 +205,10 @@ export const HomeScreen: React.FC = () => {
           )}
 
           {currentTab === 'security' && (
-            <View style={styles.securityContent}>
-              <View style={styles.securityHeader}>
-                <Text style={styles.securityTitle}>Security Settings</Text>
-                <TouchableOpacity style={styles.profileButton} onPress={handleProfilePress}>
-                  <View style={styles.profileCircle}>
-                    <Text style={styles.profileInitial}>
-                      {user?.displayName?.charAt(0) || user?.email?.charAt(0) || 'U'}
-                    </Text>
-                  </View>
-                </TouchableOpacity>
-              </View>
-
-              <View style={styles.securitySection}>
-                <View style={styles.securityItem}>
-                  <View style={styles.securityItemIcon}>
-                    <Ionicons name="finger-print" size={24} color={Colors.primary} />
-                  </View>
-                  <View style={styles.securityItemContent}>
-                    <Text style={styles.securityItemTitle}>Biometric Authentication</Text>
-                    <Text style={styles.securityItemDescription}>
-                      Always Required - Enhanced Security
-                    </Text>
-                  </View>
-                  <View style={styles.securityStatusBadge}>
-                    <Ionicons name="checkmark-circle" size={20} color={Colors.success} />
-                  </View>
-                </View>
-
-                <View style={styles.securityItem}>
-                  <View style={styles.securityItemIcon}>
-                    <Ionicons name="shield-checkmark" size={24} color={Colors.success} />
-                  </View>
-                  <View style={styles.securityItemContent}>
-                    <Text style={styles.securityItemTitle}>Password Strength</Text>
-                    <Text style={styles.securityItemDescription}>
-                      {passwords.length} passwords stored securely
-                    </Text>
-                  </View>
-                </View>
-
-                <TouchableOpacity style={[styles.securityItem, styles.lastSecurityItem]} onPress={handleLogout}>
-                  <View style={styles.securityItemIcon}>
-                    <Ionicons name="log-out" size={24} color={Colors.error} />
-                  </View>
-                  <View style={styles.securityItemContent}>
-                    <Text style={styles.securityItemTitle}>Sign Out</Text>
-                    <Text style={styles.securityItemDescription}>
-                      Sign out of your account
-                    </Text>
-                  </View>
-                  <Ionicons name="chevron-forward" size={20} color={Colors.text.secondary} />
-                </TouchableOpacity>
-              </View>
-            </View>
+            <SecurityDashboard
+              onEditPassword={handleEditPassword}
+              onDeletePassword={(password) => handleDeletePassword(password.id || '')}
+            />
           )}
         </View>
 

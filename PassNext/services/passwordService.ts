@@ -22,6 +22,9 @@ export interface Password {
   userId: string;
   createdAt: Date;
   updatedAt: Date;
+  expiryDate?: Date;
+  lastBreachCheck?: Date;
+  isBreached?: boolean;
 }
 
 export interface PasswordInput {
@@ -29,6 +32,7 @@ export interface PasswordInput {
   account: string;
   password: string;
   notes?: string;
+  expiryDate?: Date;
 }
 
 export class PasswordService {

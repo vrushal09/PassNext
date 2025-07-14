@@ -14,6 +14,7 @@ import {
 import { passwordService, Password, PasswordInput } from '../services/passwordService';
 import { useCustomAlert } from '../hooks/useCustomAlert';
 import { CustomAlert } from './CustomAlert';
+import PasswordStrengthMeter from './PasswordStrengthMeter';
 import Colors from '../constants/Colors';
 
 interface EditPasswordModalProps {
@@ -139,6 +140,16 @@ export const EditPasswordModal: React.FC<EditPasswordModalProps> = ({
               placeholder="Enter password"
               secureTextEntry
             />
+            
+            {/* Password Strength Meter */}
+            {formData.password.length > 0 && (
+              <PasswordStrengthMeter
+                password={formData.password}
+                userInputs={[formData.service, formData.account]}
+                showSuggestions={true}
+                style={styles.strengthMeter}
+              />
+            )}
           </View>
 
           <View style={styles.inputGroup}>
@@ -230,5 +241,8 @@ const styles = StyleSheet.create({
     height: 100,
     paddingTop: 18,
     textAlignVertical: 'top',
+  },
+  strengthMeter: {
+    marginTop: 12,
   },
 });

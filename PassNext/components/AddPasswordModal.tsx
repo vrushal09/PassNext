@@ -11,11 +11,16 @@ import {
   KeyboardAvoidingView,
   Platform,
   SafeAreaView,
+  Switch,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import { passwordService, PasswordInput } from '../services/passwordService';
 import { useCustomAlert } from '../hooks/useCustomAlert';
 import { CustomAlert } from './CustomAlert';
+import PasswordStrengthMeter from './PasswordStrengthMeter';
+import { notificationService } from '../services/notificationService';
+import { passwordExpiryService } from '../services/passwordExpiryService';
 import Colors from '../constants/Colors';
 
 interface AddPasswordModalProps {
@@ -36,8 +41,11 @@ export const AddPasswordModal: React.FC<AddPasswordModalProps> = ({
     account: '',
     password: '',
     notes: '',
+    expiryDate: undefined,
   });
   const [loading, setLoading] = useState(false);
+  const [showExpiryPicker, setShowExpiryPicker] = useState(false);
+  const [hasExpiryDate, setHasExpiryDate] = useState(false);
   const { alertState, hideAlert, showSuccess, showError } = useCustomAlert();
 
   const handleSubmit = async () => {
@@ -47,12 +55,20 @@ export const AddPasswordModal: React.FC<AddPasswordModalProps> = ({
     }
 
     setLoading(true);
-    const result = await passwordService.createPassword(userId, formData);
+    
+    // Set expiry date if enabled
+    const passwordData = {
+      ...formData,
+      expiryDate: hasExpiryDate ? formData.expiryDate : undefined,
+    };
+
+    const result = await passwordService.createPassword(userId, passwordData);
     setLoading(false);
 
     if (result.success) {
       showSuccess('Success', 'Password saved successfully', () => {
-        setFormData({ service: '', account: '', password: '', notes: '' });
+        setFormData({ service: '', account: '', password: '', notes: '', expiryDate: undefined });
+        setHasExpiryDate(false);
         onSuccess();
         onClose();
       });
@@ -62,7 +78,8 @@ export const AddPasswordModal: React.FC<AddPasswordModalProps> = ({
   };
 
   const handleClose = () => {
-    setFormData({ service: '', account: '', password: '', notes: '' });
+    setFormData({ service: '', account: '', password: '', notes: '', expiryDate: undefined });
+    setHasExpiryDate(false);
     onClose();
   };
 
@@ -130,6 +147,16 @@ export const AddPasswordModal: React.FC<AddPasswordModalProps> = ({
                   secureTextEntry
                 />
               </View>
+              
+              {/* Password Strength Meter */}
+              {formData.password.length > 0 && (
+                <PasswordStrengthMeter
+                  password={formData.password}
+                  userInputs={[formData.service, formData.account]}
+                  showSuggestions={true}
+                  style={styles.strengthMeter}
+                />
+              )}
             </View>
 
             <View style={styles.inputGroup}>
@@ -148,8 +175,60 @@ export const AddPasswordModal: React.FC<AddPasswordModalProps> = ({
                 />
               </View>
             </View>
+
+            {/* Password Expiry */}
+            <View style={styles.inputGroup}>
+              <View style={styles.expiryToggle}>
+                <Text style={styles.label}>Set Expiry Date</Text>
+                <Switch
+                  value={hasExpiryDate}
+                  onValueChange={(value) => {
+                    setHasExpiryDate(value);
+                    if (!value) {
+                      setFormData({ ...formData, expiryDate: undefined });
+                    } else {
+                      // Set default expiry to 90 days from now
+                      const defaultExpiry = new Date();
+                      defaultExpiry.setDate(defaultExpiry.getDate() + 90);
+                      setFormData({ ...formData, expiryDate: defaultExpiry });
+                    }
+                  }}
+                  trackColor={{ false: Colors.text.tertiary, true: Colors.primary }}
+                  thumbColor={hasExpiryDate ? Colors.primary : Colors.text.secondary}
+                />
+              </View>
+              
+              {hasExpiryDate && (
+                <TouchableOpacity 
+                  style={styles.inputContainer}
+                  onPress={() => setShowExpiryPicker(true)}
+                >
+                  <Ionicons name="calendar-outline" size={20} color={Colors.text.tertiary} style={styles.inputIcon} />
+                  <Text style={styles.expiryDateText}>
+                    {formData.expiryDate ? formData.expiryDate.toDateString() : 'Select expiry date'}
+                  </Text>
+                  <Ionicons name="chevron-forward" size={20} color={Colors.text.tertiary} />
+                </TouchableOpacity>
+              )}
+            </View>
           </ScrollView>
         </KeyboardAvoidingView>
+        
+        {/* Date Picker */}
+        {showExpiryPicker && (
+          <DateTimePicker
+            value={formData.expiryDate || new Date()}
+            mode="date"
+            display="default"
+            onChange={(event, selectedDate) => {
+              setShowExpiryPicker(false);
+              if (selectedDate) {
+                setFormData({ ...formData, expiryDate: selectedDate });
+              }
+            }}
+            minimumDate={new Date()}
+          />
+        )}
       </SafeAreaView>
       
       <CustomAlert
@@ -252,5 +331,20 @@ const styles = StyleSheet.create({
   textArea: {
     minHeight: 80,
     textAlignVertical: 'top',
+  },
+  strengthMeter: {
+    marginTop: 12,
+  },
+  expiryToggle: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  expiryDateText: {
+    flex: 1,
+    fontSize: 16,
+    color: Colors.text.primary,
+    fontWeight: '400',
   },
 });
