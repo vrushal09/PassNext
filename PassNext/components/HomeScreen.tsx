@@ -172,7 +172,7 @@ export const HomeScreen: React.FC = () => {
                   style={styles.userAvatar}
                   onPress={() => setCurrentTab('profile')}
                 >
-                  <Ionicons name="person-circle" size={36} color={Colors.primary} />
+                  <Ionicons name="person" size={24} color={Colors.primary} />
                 </TouchableOpacity>
               </View>
 
@@ -404,7 +404,7 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: Colors.surface,
+    backgroundColor: Colors.primary + '15',
     justifyContent: 'center',
     alignItems: 'center',
     marginLeft: 12,
