@@ -23,6 +23,7 @@ import { CustomAlert } from './CustomAlert';
 import { EditPasswordModal } from './EditPasswordModal';
 import NotificationScreen from './NotificationScreen';
 import { PasswordItem } from './PasswordItem';
+import { ProfileScreen } from './ProfileScreen';
 import SecurityDashboard from './SecurityDashboard';
 
 export const HomeScreen: React.FC = () => {
@@ -101,15 +102,6 @@ export const HomeScreen: React.FC = () => {
 
   const handlePasswordSuccess = () => {
     loadPasswords();
-  };
-
-  const handleProfilePress = () => {
-    showAlert({
-      title: 'Profile',
-      message: 'Profile page functionality coming soon!',
-      icon: 'person-circle',
-      buttons: [{ text: 'OK', style: 'default' }],
-    });
   };
 
   const handleTabPress = (tab: string) => {
@@ -215,6 +207,10 @@ export const HomeScreen: React.FC = () => {
           {currentTab === 'notifications' && (
             <NotificationScreen />
           )}
+
+          {currentTab === 'profile' && (
+            <ProfileScreen />
+          )}
         </View>
 
         {/* Bottom Navigation */}
@@ -241,6 +237,14 @@ export const HomeScreen: React.FC = () => {
           >
             <Ionicons name="shield-checkmark" size={22} color={currentTab === 'security' ? Colors.primary : Colors.text.secondary} />
             <Text style={[styles.navText, currentTab === 'security' && styles.activeNavText]}>Security</Text>
+          </TouchableOpacity>
+          
+          <TouchableOpacity 
+            style={[styles.navItem, currentTab === 'profile' && styles.activeNavItem]}
+            onPress={() => handleTabPress('profile')}
+          >
+            <Ionicons name="person" size={22} color={currentTab === 'profile' ? Colors.primary : Colors.text.secondary} />
+            <Text style={[styles.navText, currentTab === 'profile' && styles.activeNavText]}>Profile</Text>
           </TouchableOpacity>
         </View>
 

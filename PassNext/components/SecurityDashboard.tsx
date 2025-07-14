@@ -36,11 +36,11 @@ export const SecurityDashboard: React.FC<SecurityDashboardProps> = ({
 
   useEffect(() => {
     if (user) {
-      loadDashboardData();
+      loadDashboardData(false); // Don't force notifications on initial load
     }
   }, [user]);
 
-  const loadDashboardData = async () => {
+  const loadDashboardData = async (forceNotifications = false) => {
     try {
       setLoading(true);
       
@@ -57,8 +57,14 @@ export const SecurityDashboard: React.FC<SecurityDashboardProps> = ({
         );
         setDashboardData(dashboardResult);
         
-        // Schedule notifications for security alerts
-        await securityDashboardService.scheduleSecurityNotifications(dashboardResult.alerts);
+        // Only schedule notifications if explicitly requested or if there are critical alerts
+        const criticalAlerts = dashboardResult.alerts.filter(alert => 
+          alert.severity === 'critical' || alert.severity === 'high'
+        );
+        
+        if (forceNotifications || criticalAlerts.length > 0) {
+          await securityDashboardService.scheduleSecurityNotifications(dashboardResult.alerts);
+        }
       }
     } catch (error) {
       console.error('Error loading dashboard data:', error);
@@ -69,7 +75,7 @@ export const SecurityDashboard: React.FC<SecurityDashboardProps> = ({
 
   const handleRefresh = async () => {
     setRefreshing(true);
-    await loadDashboardData();
+    await loadDashboardData(false); // Don't force notifications on refresh
     setRefreshing(false);
   };
 
@@ -177,7 +183,7 @@ export const SecurityDashboard: React.FC<SecurityDashboardProps> = ({
     return (
       <View style={styles.errorContainer}>
         <Text style={styles.errorText}>Failed to load security dashboard</Text>
-        <TouchableOpacity style={styles.retryButton} onPress={loadDashboardData}>
+        <TouchableOpacity style={styles.retryButton} onPress={() => loadDashboardData(false)}>
           <Text style={styles.retryButtonText}>Retry</Text>
         </TouchableOpacity>
       </View>
@@ -218,7 +224,7 @@ export const SecurityDashboard: React.FC<SecurityDashboardProps> = ({
             title="Passwords"
             value={dashboardData.metrics.totalPasswords}
             icon="key-outline"
-            color={Colors.info}
+            color={Colors.primary}
           />
           <MetricCard
             title="Weak"
@@ -245,7 +251,7 @@ export const SecurityDashboard: React.FC<SecurityDashboardProps> = ({
       {dashboardData.recommendations.length > 0 && (
         <View style={styles.recommendationsContainer}>
           <View style={styles.recommendationsHeader}>
-            <Ionicons name="bulb-outline" size={16} color={Colors.warning} />
+            <Ionicons name="bulb-outline" size={16} color={Colors.primary} />
             <Text style={styles.recommendationsTitle}>Quick Tips</Text>
           </View>
           <View style={styles.recommendationsList}>
@@ -308,10 +314,10 @@ interface MetricCardProps {
 
 const MetricCard: React.FC<MetricCardProps> = ({ title, value, icon, color }) => (
   <View style={styles.metricCard}>
-    <View style={[styles.metricIcon, { backgroundColor: color }]}>
-      <Ionicons name={icon as any} size={16} color="white" />
+    <View style={[styles.metricIcon, { backgroundColor: color + '15' }]}>
+      <Ionicons name={icon as any} size={16} color={color} />
     </View>
-    <Text style={styles.metricValue}>{value}</Text>
+    <Text style={[styles.metricValue, { color: value > 0 ? Colors.error : Colors.text.primary }]}>{value}</Text>
     <Text style={styles.metricTitle}>{title}</Text>
   </View>
 );
@@ -328,7 +334,7 @@ const CompactPasswordHealthCard: React.FC<PasswordHealthCardProps> = ({ health, 
         <Text style={styles.passwordHealthService}>{health.service}</Text>
         <View style={styles.passwordHealthMeta}>
           <View style={[styles.strengthIndicator, { backgroundColor: health.strength.color }]}>
-            <Text style={styles.strengthText}>{health.strength.level.charAt(0).toUpperCase()}</Text>
+            <Text style={styles.strengthText}>{health.strength.score}</Text>
           </View>
           <Text style={styles.passwordHealthDays}>{health.daysSinceCreated}d</Text>
         </View>
@@ -519,8 +525,13 @@ const styles = StyleSheet.create({
     marginTop: 16,
     marginBottom: 20,
     paddingHorizontal: 20,
-    paddingVertical: 18,
-    borderRadius: 16,
+    paddingVertical: 20,
+    borderRadius: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 4,
   },
   scoreHeader: {
     flexDirection: 'row',
@@ -531,23 +542,27 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scoreTitle: {
-    fontSize: 16,
-    fontWeight: '500',
+    fontSize: 15,
+    fontWeight: '600',
     color: Colors.text.secondary,
     marginBottom: 8,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
   scoreDisplay: {
     flexDirection: 'row',
     alignItems: 'baseline',
   },
   scoreValue: {
-    fontSize: 36,
-    fontWeight: 'bold',
+    fontSize: 42,
+    fontWeight: '800',
+    letterSpacing: -1,
   },
   scoreLabel: {
-    fontSize: 20,
-    color: Colors.text.secondary,
+    fontSize: 18,
+    color: Colors.text.tertiary,
     marginLeft: 4,
+    fontWeight: '500',
   },
   scoreRight: {
     flexDirection: 'row',
@@ -555,24 +570,29 @@ const styles = StyleSheet.create({
     gap: 16,
   },
   riskLevel: {
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 10,
+    paddingHorizontal: 14,
+    paddingVertical: 6,
+    borderRadius: 12,
+    minWidth: 80,
+    alignItems: 'center',
   },
   riskLevelText: {
     color: 'white',
-    fontSize: 12,
-    fontWeight: '700',
+    fontSize: 11,
+    fontWeight: '800',
+    letterSpacing: 0.5,
   },
   metricsContainer: {
     marginHorizontal: 16,
     marginBottom: 20,
   },
   sectionTitle: {
-    fontSize: 18,
-    fontWeight: '600',
+    fontSize: 17,
+    fontWeight: '700',
     color: Colors.text.primary,
-    marginBottom: 12,
+    marginBottom: 16,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
   metricsGrid: {
     flexDirection: 'row',
@@ -581,9 +601,14 @@ const styles = StyleSheet.create({
   metricCard: {
     backgroundColor: Colors.surface,
     padding: 16,
-    borderRadius: 14,
+    borderRadius: 16,
     flex: 1,
     alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
   },
   metricHeader: {
     flexDirection: 'row',
@@ -597,25 +622,30 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   metricIcon: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
     justifyContent: 'center',
     alignItems: 'center',
+    marginBottom: 8,
   },
   metricInfo: {
     flex: 1,
   },
   metricValue: {
-    fontSize: 22,
-    fontWeight: 'bold',
+    fontSize: 24,
+    fontWeight: '800',
     color: Colors.text.primary,
+    textAlign: 'center',
+    marginBottom: 4,
   },
   metricTitle: {
-    fontSize: 12,
+    fontSize: 11,
     color: Colors.text.secondary,
     textAlign: 'center',
-    marginTop: 6,
+    fontWeight: '600',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
   recommendationsContainer: {
     marginHorizontal: 16,
@@ -628,15 +658,22 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   recommendationsTitle: {
-    fontSize: 17,
-    fontWeight: '600',
+    fontSize: 16,
+    fontWeight: '700',
     color: Colors.text.primary,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
   recommendationsList: {
     backgroundColor: Colors.surface,
-    padding: 16,
-    borderRadius: 14,
-    gap: 8,
+    padding: 18,
+    borderRadius: 16,
+    gap: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
   },
   recommendationItem: {
     flexDirection: 'row',
@@ -650,6 +687,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: Colors.text.secondary,
     lineHeight: 20,
+    flex: 1,
   },
   passwordHealthContainer: {
     marginHorizontal: 16,
@@ -657,9 +695,14 @@ const styles = StyleSheet.create({
   },
   passwordHealthCard: {
     backgroundColor: Colors.surface,
-    padding: 16,
-    borderRadius: 14,
-    marginBottom: 10,
+    padding: 18,
+    borderRadius: 16,
+    marginBottom: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
   },
   passwordHealthHeader: {
     flexDirection: 'row',

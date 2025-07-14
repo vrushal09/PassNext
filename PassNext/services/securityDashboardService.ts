@@ -58,6 +58,8 @@ export interface SecurityAlert {
 
 export class SecurityDashboardService {
   private static instance: SecurityDashboardService;
+  private lastNotificationCheck: Map<string, Date> = new Map();
+  private notificationCooldown = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
 
   static getInstance(): SecurityDashboardService {
     if (!SecurityDashboardService.instance) {
@@ -436,27 +438,47 @@ export class SecurityDashboardService {
   }
 
   /**
-   * Schedule security notifications
+   * Schedule security notifications with spam prevention
    */
   async scheduleSecurityNotifications(alerts: SecurityAlert[]): Promise<void> {
     const preferences = await notificationService.getNotificationPreferences();
+    const now = new Date();
 
     for (const alert of alerts) {
+      // Create a unique key for this alert type and password
+      const alertKey = `${alert.type}-${alert.passwordId}`;
+      const lastNotification = this.lastNotificationCheck.get(alertKey);
+      
+      // Skip if we've already sent a notification for this alert recently
+      if (lastNotification && (now.getTime() - lastNotification.getTime()) < this.notificationCooldown) {
+        continue;
+      }
+
+      // Only send notifications for critical and high severity alerts
+      if (alert.severity === 'low' || alert.severity === 'medium') {
+        continue;
+      }
+
+      let shouldSendNotification = false;
+
       switch (alert.type) {
         case 'breach':
-          if (preferences.breachAlerts) {
+          shouldSendNotification = preferences.breachAlerts;
+          if (shouldSendNotification) {
             await notificationService.scheduleBreachAlert(alert.serviceName, alert.passwordId);
           }
           break;
         case 'weak_password':
-          if (preferences.weakPasswordAlerts) {
+          shouldSendNotification = preferences.weakPasswordAlerts && alert.severity === 'critical';
+          if (shouldSendNotification) {
             await notificationService.scheduleWeakPasswordAlert(alert.serviceName, alert.passwordId);
           }
           break;
         case 'expiring':
-          if (preferences.passwordExpiry) {
+          shouldSendNotification = preferences.passwordExpiry;
+          if (shouldSendNotification) {
             const daysUntilExpiry = alert.message.match(/(\d+) days/)?.[1];
-            if (daysUntilExpiry) {
+            if (daysUntilExpiry && parseInt(daysUntilExpiry) <= 7) { // Only notify if expiring within 7 days
               await notificationService.schedulePasswordExpiryReminder(
                 alert.serviceName,
                 parseInt(daysUntilExpiry),
@@ -466,7 +488,36 @@ export class SecurityDashboardService {
           }
           break;
       }
+
+      // Record that we've sent a notification for this alert
+      if (shouldSendNotification) {
+        this.lastNotificationCheck.set(alertKey, now);
+      }
     }
+  }
+
+  /**
+   * Clear notification cooldown for all alerts or specific alert
+   */
+  clearNotificationCooldown(alertKey?: string): void {
+    if (alertKey) {
+      this.lastNotificationCheck.delete(alertKey);
+    } else {
+      this.lastNotificationCheck.clear();
+    }
+  }
+
+  /**
+   * Check if notification can be sent for a specific alert
+   */
+  canSendNotification(alertType: string, passwordId: string): boolean {
+    const alertKey = `${alertType}-${passwordId}`;
+    const lastNotification = this.lastNotificationCheck.get(alertKey);
+    
+    if (!lastNotification) return true;
+    
+    const now = new Date();
+    return (now.getTime() - lastNotification.getTime()) >= this.notificationCooldown;
   }
 }
 

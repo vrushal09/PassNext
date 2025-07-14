@@ -109,10 +109,19 @@ export class NotificationService {
     daysUntilExpiry: number,
     passwordId: string
   ): Promise<string | null> {
+    const alertKey = `expiry-${passwordId}`;
+    
+    // Check if notification already sent
+    const alreadySent = await this.hasNotificationBeenSent(alertKey);
+    if (alreadySent) {
+      console.log(`Password expiry reminder for ${serviceName} already sent recently`);
+      return null;
+    }
+    
     const title = `Password Expiry Reminder`;
     const body = `Your password for ${serviceName} will expire in ${daysUntilExpiry} days`;
     
-    return this.scheduleNotification({
+    const result = await this.scheduleNotification({
       title,
       body,
       data: { 
@@ -122,28 +131,64 @@ export class NotificationService {
         daysUntilExpiry 
       },
     });
+    
+    if (result) {
+      await this.markNotificationAsSent(alertKey);
+    }
+    
+    return result;
   }
 
   async scheduleBreachAlert(serviceName: string, passwordId: string): Promise<string | null> {
-    const title = `🚨 Security Alert`;
+    const alertKey = `breach-${passwordId}`;
+    
+    // Check if notification already sent
+    const alreadySent = await this.hasNotificationBeenSent(alertKey);
+    if (alreadySent) {
+      console.log(`Breach alert for ${serviceName} already sent recently`);
+      return null;
+    }
+    
+    const title = `Security Alert`;
     const body = `Your password for ${serviceName} may have been compromised in a data breach`;
     
-    return this.scheduleSecurityAlert(title, body, {
+    const result = await this.scheduleSecurityAlert(title, body, {
       type: 'breach_alert',
       passwordId,
       serviceName,
     });
+    
+    if (result) {
+      await this.markNotificationAsSent(alertKey);
+    }
+    
+    return result;
   }
 
   async scheduleWeakPasswordAlert(serviceName: string, passwordId: string): Promise<string | null> {
-    const title = `⚠️ Weak Password Detected`;
+    const alertKey = `weak-${passwordId}`;
+    
+    // Check if notification already sent
+    const alreadySent = await this.hasNotificationBeenSent(alertKey);
+    if (alreadySent) {
+      console.log(`Weak password alert for ${serviceName} already sent recently`);
+      return null;
+    }
+    
+    const title = `Weak Password Detected`;
     const body = `Your password for ${serviceName} is weak and should be updated`;
     
-    return this.scheduleSecurityAlert(title, body, {
+    const result = await this.scheduleSecurityAlert(title, body, {
       type: 'weak_password',
       passwordId,
       serviceName,
     });
+    
+    if (result) {
+      await this.markNotificationAsSent(alertKey);
+    }
+    
+    return result;
   }
 
   async cancelNotification(identifier: string): Promise<void> {
@@ -207,6 +252,55 @@ export class NotificationService {
         breachAlerts: true,
         weakPasswordAlerts: true,
       };
+    }
+  }
+
+  /**
+   * Check if a notification has already been sent for this alert
+   */
+  async hasNotificationBeenSent(alertKey: string): Promise<boolean> {
+    try {
+      const sentNotifications = await AsyncStorage.getItem('sent_notifications');
+      const notifications = sentNotifications ? JSON.parse(sentNotifications) : {};
+      
+      const lastSent = notifications[alertKey];
+      if (!lastSent) return false;
+      
+      // Check if notification was sent in the last 24 hours
+      const now = new Date().getTime();
+      const cooldownPeriod = 24 * 60 * 60 * 1000; // 24 hours
+      
+      return (now - lastSent) < cooldownPeriod;
+    } catch (error) {
+      console.error('Error checking notification history:', error);
+      return false;
+    }
+  }
+
+  /**
+   * Mark a notification as sent
+   */
+  async markNotificationAsSent(alertKey: string): Promise<void> {
+    try {
+      const sentNotifications = await AsyncStorage.getItem('sent_notifications');
+      const notifications = sentNotifications ? JSON.parse(sentNotifications) : {};
+      
+      notifications[alertKey] = new Date().getTime();
+      
+      await AsyncStorage.setItem('sent_notifications', JSON.stringify(notifications));
+    } catch (error) {
+      console.error('Error marking notification as sent:', error);
+    }
+  }
+
+  /**
+   * Clear notification history
+   */
+  async clearNotificationHistory(): Promise<void> {
+    try {
+      await AsyncStorage.removeItem('sent_notifications');
+    } catch (error) {
+      console.error('Error clearing notification history:', error);
     }
   }
 }
