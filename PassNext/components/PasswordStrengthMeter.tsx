@@ -1,7 +1,7 @@
 import React from 'react';
-import { View, Text, StyleSheet, Animated } from 'react-native';
-import { passwordStrengthService, PasswordStrengthIndicator } from '../services/passwordStrengthService';
+import { Animated, StyleSheet, Text, View } from 'react-native';
 import Colors from '../constants/Colors';
+import { PasswordStrengthIndicator, passwordStrengthService } from '../services/passwordStrengthService';
 
 interface PasswordStrengthMeterProps {
   password: string;

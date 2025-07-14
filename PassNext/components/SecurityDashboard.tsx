@@ -1,21 +1,23 @@
-import React, { useState, useEffect } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
-  RefreshControl,
-  Modal,
-  FlatList,
-  Alert,
-} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useAuth } from '../contexts/AuthContext';
-import { Password, passwordService } from '../services/passwordService';
-import { securityDashboardService, SecurityDashboardData, SecurityAlert } from '../services/securityDashboardService';
-import { notificationService } from '../services/notificationService';
+import React, { useEffect, useState } from 'react';
+import {
+    Alert,
+    FlatList,
+    Modal,
+    RefreshControl,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
+} from 'react-native';
 import Colors from '../constants/Colors';
+import { useAuth } from '../contexts/AuthContext';
+import { useCustomAlert } from '../hooks/useCustomAlert';
+import { biometricAuthService } from '../services/biometricAuthService';
+import { Password, passwordService } from '../services/passwordService';
+import { SecurityAlert, SecurityDashboardData, securityDashboardService } from '../services/securityDashboardService';
+import { CustomAlert } from './CustomAlert';
 
 interface SecurityDashboardProps {
   onEditPassword: (password: Password) => void;
@@ -27,11 +29,13 @@ export const SecurityDashboard: React.FC<SecurityDashboardProps> = ({
   onDeletePassword,
 }) => {
   const { user } = useAuth();
+  const { alertState, hideAlert, showError } = useCustomAlert();
   const [dashboardData, setDashboardData] = useState<SecurityDashboardData | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [showAlertsModal, setShowAlertsModal] = useState(false);
   const [passwords, setPasswords] = useState<Password[]>([]);
+  const [showAllPasswords, setShowAllPasswords] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -72,6 +76,34 @@ export const SecurityDashboard: React.FC<SecurityDashboardProps> = ({
     setRefreshing(false);
   };
 
+  const handleEditPassword = async (password: Password) => {
+    try {
+      // Require biometric auth for editing
+      const isAvailable = await biometricAuthService.isAvailable();
+      
+      if (isAvailable) {
+        const result = await biometricAuthService.authenticate(
+          `Authenticate to edit password for ${password.service}`
+        );
+        
+        if (result.success) {
+          onEditPassword(password);
+        } else {
+          showError(
+            'Authentication Failed',
+            result.error || 'Biometric authentication failed. Please try again.'
+          );
+        }
+      } else {
+        // If biometric auth is not available, edit directly
+        onEditPassword(password);
+      }
+    } catch (error) {
+      console.error('Error during biometric authentication:', error);
+      showError('Error', 'An error occurred during authentication');
+    }
+  };
+
   const handleAlertAction = async (alert: SecurityAlert, action: string) => {
     const password = passwords.find(p => p.id === alert.passwordId);
     if (!password) return;
@@ -81,11 +113,11 @@ export const SecurityDashboard: React.FC<SecurityDashboardProps> = ({
       case 'strengthen_password':
       case 'update_password':
       case 'create_unique':
-        onEditPassword(password);
+        await handleEditPassword(password);
         break;
       case 'generate_password':
         // Generate a new password and update
-        onEditPassword(password);
+        await handleEditPassword(password);
         break;
       case 'learn_more':
         Alert.alert(
@@ -162,90 +194,110 @@ export const SecurityDashboard: React.FC<SecurityDashboardProps> = ({
         <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
       }
     >
-      {/* Security Score */}
+      {/* Compact Security Score */}
       <View style={styles.scoreCard}>
         <View style={styles.scoreHeader}>
-          <Text style={styles.scoreTitle}>Security Score</Text>
-          <TouchableOpacity onPress={() => setShowAlertsModal(true)}>
-            <Ionicons name="notifications-outline" size={24} color={Colors.text.primary} />
-            {dashboardData.alerts.length > 0 && (
-              <View style={styles.alertBadge}>
-                <Text style={styles.alertBadgeText}>{dashboardData.alerts.length}</Text>
-              </View>
-            )}
-          </TouchableOpacity>
-        </View>
-        <View style={styles.scoreDisplay}>
-          <Text style={[styles.scoreValue, { color: getRiskLevelColor(dashboardData.riskLevel) }]}>
-            {dashboardData.metrics.securityScore}
-          </Text>
-          <Text style={styles.scoreLabel}>/ 100</Text>
-        </View>
-        <View style={[styles.riskLevel, { backgroundColor: getRiskLevelColor(dashboardData.riskLevel) }]}>
-          <Text style={styles.riskLevelText}>{dashboardData.riskLevel.toUpperCase()} RISK</Text>
+          <View style={styles.scoreInfo}>
+            <Text style={styles.scoreTitle}>Security Score</Text>
+            <View style={styles.scoreDisplay}>
+              <Text style={[styles.scoreValue, { color: getRiskLevelColor(dashboardData.riskLevel) }]}>
+                {dashboardData.metrics.securityScore}
+              </Text>
+              <Text style={styles.scoreLabel}>/ 100</Text>
+            </View>
+          </View>
+          <View style={styles.scoreRight}>
+            <View style={[styles.riskLevel, { backgroundColor: getRiskLevelColor(dashboardData.riskLevel) }]}>
+              <Text style={styles.riskLevelText}>{dashboardData.riskLevel.toUpperCase()}</Text>
+            </View>
+            <TouchableOpacity onPress={() => setShowAlertsModal(true)} style={styles.alertButton}>
+              <Ionicons name="notifications-outline" size={20} color={Colors.text.primary} />
+              {dashboardData.alerts.length > 0 && (
+                <View style={styles.alertBadge}>
+                  <Text style={styles.alertBadgeText}>{dashboardData.alerts.length}</Text>
+                </View>
+              )}
+            </TouchableOpacity>
+          </View>
         </View>
       </View>
 
-      {/* Metrics Overview */}
+      {/* Compact Metrics Overview */}
       <View style={styles.metricsContainer}>
-        <Text style={styles.sectionTitle}>Password Health</Text>
         <View style={styles.metricsGrid}>
           <MetricCard
-            title="Total Passwords"
+            title="Passwords"
             value={dashboardData.metrics.totalPasswords}
             icon="key-outline"
             color={Colors.info}
           />
           <MetricCard
-            title="Weak Passwords"
+            title="Weak"
             value={dashboardData.metrics.weakPasswords}
             icon="warning-outline"
             color={Colors.error}
           />
           <MetricCard
-            title="Reused Passwords"
+            title="Reused"
             value={dashboardData.metrics.reusedPasswords}
             icon="copy-outline"
             color={Colors.warning}
           />
           <MetricCard
-            title="Old Passwords"
-            value={dashboardData.metrics.oldPasswords}
-            icon="time-outline"
-            color={Colors.warning}
+            title="Breached"
+            value={dashboardData.metrics.breachedPasswords}
+            icon="shield-outline"
+            color={Colors.error}
           />
         </View>
       </View>
 
-      {/* Recommendations */}
+      {/* Compact Recommendations */}
       {dashboardData.recommendations.length > 0 && (
         <View style={styles.recommendationsContainer}>
-          <Text style={styles.sectionTitle}>Recommendations</Text>
-          {dashboardData.recommendations.map((recommendation, index) => (
-            <View key={index} style={styles.recommendationItem}>
-              <Ionicons name="bulb-outline" size={16} color={Colors.warning} />
-              <Text style={styles.recommendationText}>{recommendation}</Text>
-            </View>
-          ))}
+          <View style={styles.recommendationsHeader}>
+            <Ionicons name="bulb-outline" size={16} color={Colors.warning} />
+            <Text style={styles.recommendationsTitle}>Quick Tips</Text>
+          </View>
+          <View style={styles.recommendationsList}>
+            {dashboardData.recommendations.slice(0, 3).map((recommendation, index) => (
+              <Text key={index} style={styles.recommendationText}>
+                • {recommendation}
+              </Text>
+            ))}
+          </View>
         </View>
       )}
 
-      {/* Password Health List */}
+      {/* Compact Password Health List */}
       <View style={styles.passwordHealthContainer}>
         <Text style={styles.sectionTitle}>Password Details</Text>
-        {dashboardData.passwordHealth.map((health, index) => (
-          <PasswordHealthCard
+        {(showAllPasswords ? dashboardData.passwordHealth : dashboardData.passwordHealth.slice(0, 5)).map((health, index) => (
+          <CompactPasswordHealthCard
             key={health.id}
             health={health}
-            onEdit={() => {
+            onEdit={async () => {
               const password = passwords.find(p => p.id === health.id);
-              if (password) onEditPassword(password);
+              if (password) await handleEditPassword(password);
             }}
           />
         ))}
+        {dashboardData.passwordHealth.length > 5 && (
+          <TouchableOpacity 
+            style={styles.showMoreButton}
+            onPress={() => setShowAllPasswords(!showAllPasswords)}
+          >
+            <Text style={styles.showMoreText}>
+              {showAllPasswords 
+                ? 'Show Less' 
+                : `+${dashboardData.passwordHealth.length - 5} more passwords`
+              }
+            </Text>
+          </TouchableOpacity>
+        )}
       </View>
 
-      {/* Alerts Modal */}
+      {/* Compact Alerts Modal */}
       <Modal
         visible={showAlertsModal}
         animationType="slide"
@@ -255,27 +307,38 @@ export const SecurityDashboard: React.FC<SecurityDashboardProps> = ({
           <View style={styles.modalHeader}>
             <Text style={styles.modalTitle}>Security Alerts</Text>
             <TouchableOpacity onPress={() => setShowAlertsModal(false)}>
-              <Ionicons name="close" size={24} color={Colors.text.primary} />
+              <Ionicons name="close" size={20} color={Colors.text.primary} />
             </TouchableOpacity>
           </View>
           <FlatList
             data={dashboardData.alerts}
             keyExtractor={(item) => item.id}
             renderItem={({ item }) => (
-              <AlertCard
+              <CompactAlertCard
                 alert={item}
                 onAction={(action) => handleAlertAction(item, action)}
               />
             )}
+            showsVerticalScrollIndicator={false}
             ListEmptyComponent={
               <View style={styles.emptyState}>
-                <Ionicons name="shield-checkmark" size={48} color={Colors.success} />
+                <Ionicons name="shield-checkmark" size={32} color={Colors.success} />
                 <Text style={styles.emptyStateText}>No security alerts</Text>
               </View>
             }
           />
         </View>
       </Modal>
+      
+      <CustomAlert
+        visible={alertState.visible}
+        title={alertState.options.title}
+        message={alertState.options.message}
+        buttons={alertState.options.buttons || []}
+        onClose={hideAlert}
+        icon={alertState.options.icon}
+        iconColor={alertState.options.iconColor}
+      />
     </ScrollView>
   );
 };
@@ -290,7 +353,7 @@ interface MetricCardProps {
 const MetricCard: React.FC<MetricCardProps> = ({ title, value, icon, color }) => (
   <View style={styles.metricCard}>
     <View style={[styles.metricIcon, { backgroundColor: color }]}>
-      <Ionicons name={icon as any} size={20} color="white" />
+      <Ionicons name={icon as any} size={16} color="white" />
     </View>
     <Text style={styles.metricValue}>{value}</Text>
     <Text style={styles.metricTitle}>{title}</Text>
@@ -301,6 +364,30 @@ interface PasswordHealthCardProps {
   health: any;
   onEdit: () => void;
 }
+
+const CompactPasswordHealthCard: React.FC<PasswordHealthCardProps> = ({ health, onEdit }) => (
+  <View style={styles.passwordHealthCard}>
+    <View style={styles.passwordHealthHeader}>
+      <View style={styles.passwordHealthLeft}>
+        <Text style={styles.passwordHealthService}>{health.service}</Text>
+        <View style={styles.passwordHealthMeta}>
+          <View style={[styles.strengthIndicator, { backgroundColor: health.strength.color }]}>
+            <Text style={styles.strengthText}>{health.strength.level.charAt(0).toUpperCase()}</Text>
+          </View>
+          <Text style={styles.passwordHealthDays}>{health.daysSinceCreated}d</Text>
+        </View>
+      </View>
+      <TouchableOpacity onPress={onEdit} style={styles.editButton}>
+        <Ionicons name="pencil-outline" size={18} color={Colors.text.secondary} />
+      </TouchableOpacity>
+    </View>
+    {health.recommendations.length > 0 && health.recommendations[0] !== 'Password appears secure' && (
+      <Text style={styles.passwordHealthRecommendation}>
+        {health.recommendations[0]}
+      </Text>
+    )}
+  </View>
+);
 
 const PasswordHealthCard: React.FC<PasswordHealthCardProps> = ({ health, onEdit }) => (
   <View style={styles.passwordHealthCard}>
@@ -333,28 +420,68 @@ interface AlertCardProps {
   onAction: (action: string) => void;
 }
 
+const getAlertColor = (severity: string) => {
+  switch (severity) {
+    case 'low': return Colors.info;
+    case 'medium': return Colors.warning;
+    case 'high': return '#FF9500';
+    case 'critical': return Colors.error;
+    default: return Colors.text.secondary;
+  }
+};
+
+const getAlertIcon = (type: string) => {
+  switch (type) {
+    case 'breach': return 'shield-outline';
+    case 'weak_password': return 'warning-outline';
+    case 'reused_password': return 'copy-outline';
+    case 'old_password': return 'time-outline';
+    case 'expiring': return 'hourglass-outline';
+    default: return 'information-circle-outline';
+  }
+};
+
+const CompactAlertCard: React.FC<AlertCardProps> = ({ alert, onAction }) => {
+  const alertColor = getAlertColor(alert.severity);
+  
+  return (
+    <View style={[styles.alertCard, { borderLeftColor: alertColor }]}>
+      <View style={styles.alertHeader}>
+        <View style={[styles.alertIcon, { backgroundColor: alertColor }]}>
+          <Ionicons name={getAlertIcon(alert.type) as any} size={18} color="white" />
+        </View>
+        <View style={styles.alertContent}>
+          <Text style={styles.alertTitle}>{alert.title}</Text>
+          <Text style={styles.alertService}>{alert.serviceName}</Text>
+          <Text style={styles.alertMessage} numberOfLines={2}>{alert.message}</Text>
+        </View>
+      </View>
+      <View style={styles.alertActions}>
+        {alert.actions.slice(0, 2).map((action, index) => (
+          <TouchableOpacity
+            key={index}
+            style={[
+              styles.alertAction,
+              action.isPrimary && styles.alertActionPrimary,
+            ]}
+            onPress={() => onAction(action.action)}
+          >
+            <Text
+              style={[
+                styles.alertActionText,
+                action.isPrimary && styles.alertActionTextPrimary,
+              ]}
+            >
+              {action.label}
+            </Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+    </View>
+  );
+};
+
 const AlertCard: React.FC<AlertCardProps> = ({ alert, onAction }) => {
-  const getAlertColor = (severity: string) => {
-    switch (severity) {
-      case 'low': return Colors.info;
-      case 'medium': return Colors.warning;
-      case 'high': return '#FF9500';
-      case 'critical': return Colors.error;
-      default: return Colors.text.secondary;
-    }
-  };
-
-  const getAlertIcon = (type: string) => {
-    switch (type) {
-      case 'breach': return 'shield-outline';
-      case 'weak_password': return 'warning-outline';
-      case 'reused_password': return 'copy-outline';
-      case 'old_password': return 'time-outline';
-      case 'expiring': return 'hourglass-outline';
-      default: return 'information-circle-outline';
-    }
-  };
-
   return (
     <View style={styles.alertCard}>
       <View style={styles.alertHeader}>
@@ -432,30 +559,33 @@ const styles = StyleSheet.create({
   },
   scoreCard: {
     backgroundColor: Colors.surface,
-    margin: 16,
-    padding: 20,
+    marginHorizontal: 16,
+    marginTop: 16,
+    marginBottom: 20,
+    paddingHorizontal: 20,
+    paddingVertical: 18,
     borderRadius: 16,
-    alignItems: 'center',
   },
   scoreHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    width: '100%',
-    marginBottom: 16,
+  },
+  scoreInfo: {
+    flex: 1,
   },
   scoreTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: Colors.text.primary,
+    fontSize: 16,
+    fontWeight: '500',
+    color: Colors.text.secondary,
+    marginBottom: 8,
   },
   scoreDisplay: {
     flexDirection: 'row',
     alignItems: 'baseline',
-    marginBottom: 12,
   },
   scoreValue: {
-    fontSize: 48,
+    fontSize: 36,
     fontWeight: 'bold',
   },
   scoreLabel: {
@@ -463,35 +593,44 @@ const styles = StyleSheet.create({
     color: Colors.text.secondary,
     marginLeft: 4,
   },
+  scoreRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 16,
+  },
   riskLevel: {
-    paddingHorizontal: 16,
-    paddingVertical: 6,
-    borderRadius: 20,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 10,
   },
   riskLevelText: {
     color: 'white',
     fontSize: 12,
-    fontWeight: '600',
+    fontWeight: '700',
+  },
+  alertButton: {
+    padding: 4,
+    position: 'relative',
   },
   alertBadge: {
     position: 'absolute',
-    top: -4,
-    right: -4,
+    top: -2,
+    right: -2,
     backgroundColor: Colors.error,
-    borderRadius: 10,
-    minWidth: 20,
-    height: 20,
+    borderRadius: 8,
+    minWidth: 16,
+    height: 16,
     justifyContent: 'center',
     alignItems: 'center',
   },
   alertBadgeText: {
     color: 'white',
-    fontSize: 12,
+    fontSize: 10,
     fontWeight: '600',
   },
   metricsContainer: {
-    margin: 16,
-    marginTop: 0,
+    marginHorizontal: 16,
+    marginBottom: 20,
   },
   sectionTitle: {
     fontSize: 18,
@@ -501,39 +640,67 @@ const styles = StyleSheet.create({
   },
   metricsGrid: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
     gap: 12,
   },
   metricCard: {
     backgroundColor: Colors.surface,
     padding: 16,
-    borderRadius: 12,
-    alignItems: 'center',
+    borderRadius: 14,
     flex: 1,
-    minWidth: '45%',
-  },
-  metricIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    justifyContent: 'center',
     alignItems: 'center',
+  },
+  metricHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
     marginBottom: 8,
   },
+  metricContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  metricIcon: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  metricInfo: {
+    flex: 1,
+  },
   metricValue: {
-    fontSize: 24,
+    fontSize: 22,
     fontWeight: 'bold',
     color: Colors.text.primary,
-    marginBottom: 4,
   },
   metricTitle: {
     fontSize: 12,
     color: Colors.text.secondary,
     textAlign: 'center',
+    marginTop: 6,
   },
   recommendationsContainer: {
-    margin: 16,
-    marginTop: 0,
+    marginHorizontal: 16,
+    marginBottom: 20,
+  },
+  recommendationsHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    marginBottom: 12,
+  },
+  recommendationsTitle: {
+    fontSize: 17,
+    fontWeight: '600',
+    color: Colors.text.primary,
+  },
+  recommendationsList: {
+    backgroundColor: Colors.surface,
+    padding: 16,
+    borderRadius: 14,
+    gap: 8,
   },
   recommendationItem: {
     flexDirection: 'row',
@@ -544,20 +711,19 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   recommendationText: {
-    flex: 1,
-    marginLeft: 8,
-    color: Colors.text.primary,
     fontSize: 14,
+    color: Colors.text.secondary,
+    lineHeight: 20,
   },
   passwordHealthContainer: {
-    margin: 16,
-    marginTop: 0,
+    marginHorizontal: 16,
+    marginBottom: 20,
   },
   passwordHealthCard: {
     backgroundColor: Colors.surface,
     padding: 16,
-    borderRadius: 12,
-    marginBottom: 8,
+    borderRadius: 14,
+    marginBottom: 10,
   },
   passwordHealthHeader: {
     flexDirection: 'row',
@@ -565,10 +731,19 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 8,
   },
+  passwordHealthLeft: {
+    flex: 1,
+  },
   passwordHealthService: {
     fontSize: 16,
     fontWeight: '600',
     color: Colors.text.primary,
+    marginBottom: 6,
+  },
+  passwordHealthMeta: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
   },
   passwordHealthInfo: {
     flexDirection: 'row',
@@ -577,25 +752,50 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   strengthIndicator: {
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 4,
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   strengthText: {
     color: 'white',
-    fontSize: 12,
-    fontWeight: '600',
+    fontSize: 11,
+    fontWeight: '700',
   },
   passwordHealthDays: {
     fontSize: 12,
     color: Colors.text.secondary,
+    fontWeight: '500',
   },
   passwordHealthRecommendations: {
     gap: 4,
   },
   passwordHealthRecommendation: {
-    fontSize: 12,
+    fontSize: 13,
     color: Colors.text.secondary,
+    lineHeight: 18,
+    marginTop: 6,
+  },
+  editButton: {
+    padding: 6,
+    borderRadius: 8,
+    backgroundColor: Colors.background,
+  },
+  showMoreButton: {
+    backgroundColor: Colors.surface,
+    padding: 14,
+    borderRadius: 12,
+    alignItems: 'center',
+    marginTop: 8,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    borderStyle: 'dashed',
+  },
+  showMoreText: {
+    fontSize: 13,
+    color: Colors.text.secondary,
+    fontWeight: '500',
   },
   modalContainer: {
     flex: 1,
@@ -605,7 +805,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 16,
+    paddingHorizontal: 20,
+    paddingVertical: 16,
     borderBottomWidth: 1,
     borderBottomColor: Colors.border,
   },
@@ -625,9 +826,12 @@ const styles = StyleSheet.create({
   },
   alertCard: {
     backgroundColor: Colors.surface,
-    margin: 16,
+    marginHorizontal: 16,
+    marginVertical: 8,
     padding: 16,
-    borderRadius: 12,
+    borderRadius: 14,
+    borderLeftWidth: 4,
+    borderLeftColor: Colors.primary,
   },
   alertHeader: {
     flexDirection: 'row',
@@ -635,9 +839,9 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   alertIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -651,20 +855,22 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   alertService: {
-    fontSize: 14,
+    fontSize: 13,
     color: Colors.text.secondary,
     marginBottom: 4,
   },
   alertMessage: {
     fontSize: 14,
     color: Colors.text.primary,
+    lineHeight: 20,
   },
   alertActions: {
     flexDirection: 'row',
     gap: 8,
+    marginTop: 4,
   },
   alertAction: {
-    paddingHorizontal: 16,
+    paddingHorizontal: 14,
     paddingVertical: 8,
     borderRadius: 8,
     borderWidth: 1,
@@ -675,7 +881,7 @@ const styles = StyleSheet.create({
     borderColor: Colors.primary,
   },
   alertActionText: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '600',
     color: Colors.text.primary,
   },

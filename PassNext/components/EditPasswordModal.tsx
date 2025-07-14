@@ -1,21 +1,20 @@
 import React, { useState } from 'react';
 import {
-  View,
+  KeyboardAvoidingView,
+  Modal,
+  Platform,
+  ScrollView,
+  StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
-  StyleSheet,
-  Alert,
-  Modal,
-  ScrollView,
-  KeyboardAvoidingView,
-  Platform,
+  View
 } from 'react-native';
-import { passwordService, Password, PasswordInput } from '../services/passwordService';
+import Colors from '../constants/Colors';
 import { useCustomAlert } from '../hooks/useCustomAlert';
+import { Password, PasswordInput, passwordService } from '../services/passwordService';
 import { CustomAlert } from './CustomAlert';
 import PasswordStrengthMeter from './PasswordStrengthMeter';
-import Colors from '../constants/Colors';
 
 interface EditPasswordModalProps {
   visible: boolean;

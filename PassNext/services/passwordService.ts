@@ -1,14 +1,14 @@
 import {
-  collection,
   addDoc,
-  updateDoc,
+  collection,
   deleteDoc,
   doc,
   getDocs,
-  query,
-  where,
   orderBy,
+  query,
   Timestamp,
+  updateDoc,
+  where,
 } from 'firebase/firestore';
 import { db } from '../config/firebase';
 import { encryptionService } from './encryptionService';

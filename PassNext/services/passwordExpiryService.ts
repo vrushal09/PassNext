@@ -1,6 +1,6 @@
-import { Password } from './passwordService';
-import { notificationService } from './notificationService';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { notificationService } from './notificationService';
+import { Password } from './passwordService';
 
 export interface ExpiryReminderSettings {
   enabled: boolean;

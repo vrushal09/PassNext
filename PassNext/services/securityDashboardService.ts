@@ -1,8 +1,7 @@
-import { Password } from './passwordService';
-import { passwordStrengthService } from './passwordStrengthService';
 import { breachMonitoringService } from './breachMonitoringService';
 import { notificationService } from './notificationService';
-import { passwordExpiryService } from './passwordExpiryService';
+import { Password } from './passwordService';
+import { passwordStrengthService } from './passwordStrengthService';
 
 export interface SecurityMetrics {
   totalPasswords: number;
@@ -403,27 +402,27 @@ export class SecurityDashboardService {
     const recommendations: string[] = [];
 
     if (params.isBreached) {
-      recommendations.push('🚨 Password found in data breach - change immediately');
+      recommendations.push('Password found in data breach - change immediately');
     }
 
     if (params.isWeak) {
-      recommendations.push('⚠️ Password is weak - use longer, more complex password');
+      recommendations.push('Password is weak - use longer, more complex password');
     }
 
     if (params.isReused) {
-      recommendations.push('🔄 Password is reused - create a unique password');
+      recommendations.push('Password is reused - create a unique password');
     }
 
     if (params.isOld) {
-      recommendations.push(`📅 Password is ${params.daysSinceCreated} days old - consider updating`);
+      recommendations.push(`Password is ${params.daysSinceCreated} days old - consider updating`);
     }
 
     if (params.isExpiring) {
-      recommendations.push(`⏰ Password expires in ${params.daysUntilExpiry} days`);
+      recommendations.push(`Password expires in ${params.daysUntilExpiry} days`);
     }
 
     if (recommendations.length === 0) {
-      recommendations.push('✅ Password appears secure');
+      recommendations.push('Password appears secure');
     }
 
     return recommendations;

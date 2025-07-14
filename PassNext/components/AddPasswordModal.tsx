@@ -1,27 +1,24 @@
+import { Ionicons } from '@expo/vector-icons';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import React, { useState } from 'react';
 import {
-  View,
+  KeyboardAvoidingView,
+  Modal,
+  Platform,
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  Switch,
   Text,
   TextInput,
   TouchableOpacity,
-  StyleSheet,
-  Alert,
-  Modal,
-  ScrollView,
-  KeyboardAvoidingView,
-  Platform,
-  SafeAreaView,
-  Switch,
+  View
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import DateTimePicker from '@react-native-community/datetimepicker';
-import { passwordService, PasswordInput } from '../services/passwordService';
+import Colors from '../constants/Colors';
 import { useCustomAlert } from '../hooks/useCustomAlert';
+import { PasswordInput, passwordService } from '../services/passwordService';
 import { CustomAlert } from './CustomAlert';
 import PasswordStrengthMeter from './PasswordStrengthMeter';
-import { notificationService } from '../services/notificationService';
-import { passwordExpiryService } from '../services/passwordExpiryService';
-import Colors from '../constants/Colors';
 
 interface AddPasswordModalProps {
   visible: boolean;
