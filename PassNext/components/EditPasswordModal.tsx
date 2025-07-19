@@ -1,10 +1,14 @@
+import { Ionicons } from '@expo/vector-icons';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import React, { useState } from 'react';
 import {
   KeyboardAvoidingView,
   Modal,
   Platform,
+  SafeAreaView,
   ScrollView,
   StyleSheet,
+  Switch,
   Text,
   TextInput,
   TouchableOpacity,
@@ -36,8 +40,14 @@ export const EditPasswordModal: React.FC<EditPasswordModalProps> = ({
     account: password?.account || '',
     password: password?.password || '',
     notes: password?.notes || '',
+    expiryDate: password?.expiryDate ? new Date(password.expiryDate) : undefined,
   });
   const [loading, setLoading] = useState(false);
+  const [showExpiryPicker, setShowExpiryPicker] = useState(false);
+  const [hasExpiryDate, setHasExpiryDate] = useState(!!password?.expiryDate);
+  const [showNotes, setShowNotes] = useState(!!password?.notes);
+  const [showExpirySettings, setShowExpirySettings] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const { alertState, hideAlert, showSuccess, showError } = useCustomAlert();
 
   React.useEffect(() => {
@@ -47,9 +57,38 @@ export const EditPasswordModal: React.FC<EditPasswordModalProps> = ({
         account: password.account,
         password: password.password,
         notes: password.notes || '',
+        expiryDate: password.expiryDate ? new Date(password.expiryDate) : undefined,
       });
+      setHasExpiryDate(!!password.expiryDate);
+      setShowNotes(!!password.notes);
     }
   }, [password]);
+
+  const generatePassword = () => {
+    const length = 16;
+    const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()";
+    let password = "";
+    
+    // Ensure at least one character from each category
+    const lowercase = "abcdefghijklmnopqrstuvwxyz";
+    const uppercase = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    const numbers = "0123456789";
+    const symbols = "!@#$%^&*()";
+    
+    password += lowercase[Math.floor(Math.random() * lowercase.length)];
+    password += uppercase[Math.floor(Math.random() * uppercase.length)];
+    password += numbers[Math.floor(Math.random() * numbers.length)];
+    password += symbols[Math.floor(Math.random() * symbols.length)];
+    
+    // Fill the rest randomly
+    for (let i = password.length; i < length; i++) {
+      password += charset[Math.floor(Math.random() * charset.length)];
+    }
+    
+    // Shuffle the password
+    const shuffled = password.split('').sort(() => Math.random() - 0.5).join('');
+    setFormData({ ...formData, password: shuffled });
+  };
 
   const handleSubmit = async () => {
     if (!formData.service.trim() || !formData.account.trim() || !formData.password.trim()) {
@@ -63,7 +102,14 @@ export const EditPasswordModal: React.FC<EditPasswordModalProps> = ({
     }
 
     setLoading(true);
-    const result = await passwordService.updatePassword(password.id, userId, formData);
+    
+    // Set expiry date if enabled
+    const passwordData = {
+      ...formData,
+      expiryDate: hasExpiryDate ? formData.expiryDate : undefined,
+    };
+
+    const result = await passwordService.updatePassword(password.id, userId, passwordData);
     setLoading(false);
 
     if (result.success) {
@@ -83,88 +129,216 @@ export const EditPasswordModal: React.FC<EditPasswordModalProps> = ({
         account: password.account,
         password: password.password,
         notes: password.notes || '',
+        expiryDate: password.expiryDate ? new Date(password.expiryDate) : undefined,
       });
+      setHasExpiryDate(!!password.expiryDate);
+      setShowNotes(!!password.notes);
     }
     onClose();
   };
 
   return (
     <Modal visible={visible} animationType="slide" presentationStyle="pageSheet">
-      <KeyboardAvoidingView 
-        style={styles.container} 
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      >
-        <View style={styles.header}>
-          <TouchableOpacity onPress={handleClose}>
-            <Text style={styles.cancelButton}>Cancel</Text>
-          </TouchableOpacity>
-          <Text style={styles.title}>Edit Password</Text>
-          <TouchableOpacity onPress={handleSubmit} disabled={loading}>
-            <Text style={[styles.saveButton, loading && styles.disabledButton]}>
-              {loading ? 'Saving...' : 'Save'}
-            </Text>
-          </TouchableOpacity>
-        </View>
-
-        <ScrollView style={styles.form}>
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Service Name *</Text>
-            <TextInput
-              style={styles.input}
-              value={formData.service}
-              onChangeText={(text) => setFormData({ ...formData, service: text })}
-              placeholder="e.g., Google, Facebook, GitHub"
-              autoCapitalize="words"
-            />
+      <SafeAreaView style={styles.container}>
+        <KeyboardAvoidingView 
+          style={styles.keyboardContainer} 
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        >
+          {/* Compact Header */}
+          <View style={styles.header}>
+            <TouchableOpacity onPress={handleClose} style={styles.headerButton}>
+              <Ionicons name="close" size={22} color={Colors.text.secondary} />
+            </TouchableOpacity>
+            <Text style={styles.title}>Edit Password</Text>
+            <TouchableOpacity onPress={handleSubmit} disabled={loading} style={styles.saveButton}>
+              <Text style={[styles.saveButtonText, loading && styles.disabledButton]}>
+                {loading ? 'Saving...' : 'Save'}
+              </Text>
+            </TouchableOpacity>
           </View>
 
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Account *</Text>
-            <TextInput
-              style={styles.input}
-              value={formData.account}
-              onChangeText={(text) => setFormData({ ...formData, account: text })}
-              placeholder="Email or username"
-              autoCapitalize="none"
-              keyboardType="email-address"
-            />
-          </View>
+          <ScrollView style={styles.form} showsVerticalScrollIndicator={false}>
+            {/* Service Name */}
+            <View style={styles.inputGroup}>
+              <View style={styles.inputContainer}>
+                <Ionicons name="business-outline" size={18} color={Colors.text.tertiary} style={styles.inputIcon} />
+                <TextInput
+                  style={styles.input}
+                  value={formData.service}
+                  onChangeText={(text) => setFormData({ ...formData, service: text })}
+                  placeholder="Service name (e.g., Google, Facebook)"
+                  placeholderTextColor={Colors.input.placeholder}
+                  autoCapitalize="words"
+                />
+              </View>
+            </View>
 
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Password *</Text>
-            <TextInput
-              style={styles.input}
-              value={formData.password}
-              onChangeText={(text) => setFormData({ ...formData, password: text })}
-              placeholder="Enter password"
-              secureTextEntry
-            />
-            
-            {/* Password Strength Meter */}
-            {formData.password.length > 0 && (
-              <PasswordStrengthMeter
-                password={formData.password}
-                userInputs={[formData.service, formData.account]}
-                showSuggestions={true}
-                style={styles.strengthMeter}
+            {/* Account */}
+            <View style={styles.inputGroup}>
+              <View style={styles.inputContainer}>
+                <Ionicons name="person-outline" size={18} color={Colors.text.tertiary} style={styles.inputIcon} />
+                <TextInput
+                  style={styles.input}
+                  value={formData.account}
+                  onChangeText={(text) => setFormData({ ...formData, account: text })}
+                  placeholder="Email or username"
+                  placeholderTextColor={Colors.input.placeholder}
+                  autoCapitalize="none"
+                  keyboardType="email-address"
+                />
+              </View>
+            </View>
+
+            {/* Password */}
+            <View style={styles.inputGroup}>
+              <View style={styles.inputContainer}>
+                <Ionicons name="lock-closed-outline" size={18} color={Colors.text.tertiary} style={styles.inputIcon} />
+                <TextInput
+                  style={styles.input}
+                  value={formData.password}
+                  onChangeText={(text) => setFormData({ ...formData, password: text })}
+                  placeholder="Enter password"
+                  placeholderTextColor={Colors.input.placeholder}
+                  secureTextEntry={!showPassword}
+                />
+                <TouchableOpacity 
+                  style={styles.togglePasswordButton}
+                  onPress={() => setShowPassword(!showPassword)}
+                >
+                  <Ionicons 
+                    name={showPassword ? "eye-off-outline" : "eye-outline"} 
+                    size={18} 
+                    color={Colors.text.secondary} 
+                  />
+                </TouchableOpacity>
+                <TouchableOpacity 
+                  style={styles.generateButton}
+                  onPress={generatePassword}
+                >
+                  <Ionicons name="refresh" size={16} color={Colors.primary} />
+                </TouchableOpacity>
+              </View>
+              
+              {/* Enhanced Password Strength Meter */}
+              {formData.password.length > 0 && (
+                <View style={styles.strengthMeterContainer}>
+                  <PasswordStrengthMeter
+                    password={formData.password}
+                    userInputs={[formData.service, formData.account]}
+                    showSuggestions={true}
+                  />
+                </View>
+              )}
+            </View>
+
+            {/* Notes - Collapsible */}
+            <TouchableOpacity 
+              style={styles.collapsibleHeader}
+              onPress={() => setShowNotes(!showNotes)}
+            >
+              <Ionicons name="document-text-outline" size={16} color={Colors.text.secondary} />
+              <Text style={styles.collapsibleTitle}>Notes</Text>
+              <Ionicons 
+                name={showNotes ? "chevron-up" : "chevron-down"} 
+                size={16} 
+                color={Colors.text.secondary} 
               />
+            </TouchableOpacity>
+            
+            {showNotes && (
+              <View style={styles.inputGroup}>
+                <View style={styles.textAreaContainer}>
+                  <TextInput
+                    style={styles.textArea}
+                    value={formData.notes}
+                    onChangeText={(text) => setFormData({ ...formData, notes: text })}
+                    placeholder="Additional notes..."
+                    placeholderTextColor={Colors.input.placeholder}
+                    multiline
+                    numberOfLines={3}
+                    textAlignVertical="top"
+                  />
+                </View>
+              </View>
             )}
-          </View>
 
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Notes</Text>
-            <TextInput
-              style={[styles.input, styles.textArea]}
-              value={formData.notes}
-              onChangeText={(text) => setFormData({ ...formData, notes: text })}
-              placeholder="Additional notes (optional)"
-              multiline
-              numberOfLines={4}
-              textAlignVertical="top"
-            />
-          </View>
-        </ScrollView>
-      </KeyboardAvoidingView>
+            {/* Password Expiry - Collapsible */}
+            <TouchableOpacity 
+              style={styles.collapsibleHeader}
+              onPress={() => setShowExpirySettings(!showExpirySettings)}
+            >
+              <Ionicons name="calendar-outline" size={16} color={Colors.text.secondary} />
+              <Text style={styles.collapsibleTitle}>Password Expiry</Text>
+              <View style={styles.collapsibleRight}>
+                {hasExpiryDate && (
+                  <Text style={styles.expiryIndicator}>
+                    {formData.expiryDate ? formData.expiryDate.toLocaleDateString() : 'Set'}
+                  </Text>
+                )}
+                <Ionicons 
+                  name={showExpirySettings ? "chevron-up" : "chevron-down"} 
+                  size={16} 
+                  color={Colors.text.secondary} 
+                />
+              </View>
+            </TouchableOpacity>
+            
+            {showExpirySettings && (
+              <View style={styles.inputGroup}>
+                <View style={styles.switchContainer}>
+                  <Text style={styles.switchLabel}>Set expiry date</Text>
+                  <Switch
+                    value={hasExpiryDate}
+                    onValueChange={(value) => {
+                      setHasExpiryDate(value);
+                      if (!value) {
+                        setFormData({ ...formData, expiryDate: undefined });
+                      } else {
+                        const defaultExpiry = new Date();
+                        defaultExpiry.setDate(defaultExpiry.getDate() + 90);
+                        setFormData({ ...formData, expiryDate: defaultExpiry });
+                      }
+                    }}
+                    trackColor={{ false: Colors.text.tertiary, true: Colors.primary }}
+                    thumbColor={hasExpiryDate ? Colors.primary : Colors.text.secondary}
+                  />
+                </View>
+                
+                {hasExpiryDate && (
+                  <TouchableOpacity 
+                    style={styles.datePickerButton}
+                    onPress={() => setShowExpiryPicker(true)}
+                  >
+                    <Text style={styles.datePickerText}>
+                      {formData.expiryDate ? formData.expiryDate.toDateString() : 'Select expiry date'}
+                    </Text>
+                    <Ionicons name="chevron-forward" size={16} color={Colors.text.tertiary} />
+                  </TouchableOpacity>
+                )}
+              </View>
+            )}
+
+            {/* Bottom Spacing */}
+            <View style={styles.bottomSpacing} />
+          </ScrollView>
+        </KeyboardAvoidingView>
+        
+        {/* Date Picker */}
+        {showExpiryPicker && (
+          <DateTimePicker
+            value={formData.expiryDate || new Date()}
+            mode="date"
+            display="default"
+            onChange={(event, selectedDate) => {
+              setShowExpiryPicker(false);
+              if (selectedDate) {
+                setFormData({ ...formData, expiryDate: selectedDate });
+              }
+            }}
+            minimumDate={new Date()}
+          />
+        )}
+      </SafeAreaView>
       
       <CustomAlert
         visible={alertState.visible}
@@ -184,39 +358,162 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.background,
   },
+  keyboardContainer: {
+    flex: 1,
+  },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 20,
+    paddingHorizontal: 20,
+    paddingVertical: 12,
     backgroundColor: Colors.background,
     borderBottomWidth: 1,
     borderBottomColor: Colors.divider,
   },
+  headerButton: {
+    padding: 6,
+    minWidth: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   title: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: '600',
     color: Colors.text.primary,
   },
+  saveButton: {
+    backgroundColor: Colors.primary,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 8,
+  },
+  saveButtonText: {
+    fontSize: 14,
+    color: Colors.text.inverse,
+    fontWeight: '600',
+  },
+  disabledButton: {
+    opacity: 0.6,
+  },
+  form: {
+    flex: 1,
+    paddingHorizontal: 20,
+    paddingTop: 16,
+  },
+  inputGroup: {
+    marginBottom: 16,
+  },
+  inputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Colors.input.background,
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    minHeight: 48,
+  },
+  inputIcon: {
+    marginRight: 10,
+  },
+  input: {
+    flex: 1,
+    fontSize: 16,
+    color: Colors.text.primary,
+    fontWeight: '400',
+  },
+  strengthMeterContainer: {
+    marginTop: 4,
+  },
+  generateButton: {
+    padding: 12,
+    borderRadius: 8,
+    backgroundColor: Colors.primary + '15',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  togglePasswordButton: {
+    padding: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 4,
+  },
+  textAreaContainer: {
+    alignItems: 'flex-start',
+    minHeight: 80,
+    paddingVertical: 12,
+  },
+  textArea: {
+    minHeight: 60,
+    textAlignVertical: 'top',
+    fontSize: 16,
+    color: Colors.text.primary,
+    backgroundColor: Colors.input.background,
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    width: '100%',
+  },
+  collapsibleHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 4,
+    marginBottom: 8,
+  },
+  collapsibleTitle: {
+    flex: 1,
+    fontSize: 16,
+    fontWeight: '500',
+    color: Colors.text.primary,
+    marginLeft: 10,
+  },
+  collapsibleRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  expiryIndicator: {
+    fontSize: 12,
+    color: Colors.text.secondary,
+  },
+  switchContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: Colors.input.background,
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    marginBottom: 12,
+  },
+  switchLabel: {
+    fontSize: 16,
+    color: Colors.text.primary,
+    fontWeight: '400',
+  },
+  datePickerButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Colors.input.background,
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    justifyContent: 'space-between',
+  },
+  datePickerText: {
+    fontSize: 16,
+    color: Colors.text.primary,
+    fontWeight: '400',
+  },
+  bottomSpacing: {
+    height: 20,
+  },
+  // Legacy styles - keeping for backward compatibility
   cancelButton: {
     fontSize: 16,
     color: Colors.text.secondary,
     fontWeight: '500',
-  },
-  saveButton: {
-    fontSize: 16,
-    color: Colors.primary,
-    fontWeight: '600',
-  },
-  disabledButton: {
-    color: Colors.text.tertiary,
-  },
-  form: {
-    flex: 1,
-    padding: 20,
-  },
-  inputGroup: {
-    marginBottom: 24,
   },
   label: {
     fontSize: 14,
@@ -224,22 +521,6 @@ const styles = StyleSheet.create({
     color: Colors.text.secondary,
     marginBottom: 8,
     marginLeft: 4,
-  },
-  input: {
-    backgroundColor: Colors.input.background,
-    borderWidth: 1,
-    borderColor: 'transparent',
-    borderRadius: 16,
-    paddingHorizontal: 20,
-    paddingVertical: 18,
-    fontSize: 16,
-    color: Colors.text.primary,
-    minHeight: 56,
-  },
-  textArea: {
-    height: 100,
-    paddingTop: 18,
-    textAlignVertical: 'top',
   },
   strengthMeter: {
     marginTop: 12,

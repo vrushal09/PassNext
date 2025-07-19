@@ -135,13 +135,17 @@ export const SecurityDashboard: React.FC<SecurityDashboardProps> = ({ onClose })
     return (
       <View style={styles.container}>
         <View style={styles.header}>
-          <Text style={styles.headerTitle}>Security Analytics</Text>
+          <Text style={styles.headerTitle}>Security Insights</Text>
           <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-            <Ionicons name="close" size={24} color={Colors.text.primary} />
+            <Ionicons name="close" size={20} color={Colors.text.secondary} />
           </TouchableOpacity>
         </View>
         <View style={styles.loadingContainer}>
-          <Text style={styles.loadingText}>Analyzing your password security...</Text>
+          <View style={styles.loadingIcon}>
+            <Ionicons name="shield-checkmark-outline" size={48} color={Colors.primary} />
+          </View>
+          <Text style={styles.loadingText}>Analyzing security...</Text>
+          <Text style={styles.loadingSubtext}>Please wait</Text>
         </View>
       </View>
     );
@@ -154,66 +158,95 @@ export const SecurityDashboard: React.FC<SecurityDashboardProps> = ({ onClose })
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Security Analytics</Text>
+        <Text style={styles.headerTitle}>Security Insights</Text>
         <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-          <Ionicons name="close" size={24} color={Colors.text.primary} />
+          <Ionicons name="close" size={20} color={Colors.text.secondary} />
         </TouchableOpacity>
       </View>
 
       <ScrollView
         style={styles.content}
+        showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
         }
       >
         {/* Security Score */}
         <View style={styles.scoreCard}>
-          <Text style={styles.scoreTitle}>Overall Security Score</Text>
+          <View style={styles.scoreHeader}>
+            <Ionicons name="shield-checkmark" size={24} color={scoreColor} />
+            <Text style={styles.scoreTitle}>Security Score</Text>
+          </View>
           <View style={styles.scoreDisplay}>
             <Text style={[styles.scoreValue, { color: scoreColor }]}>{securityScore}</Text>
-            <Text style={styles.scoreLabel}>/ 100</Text>
+            <View style={styles.scoreInfo}>
+              <Text style={styles.scoreLabel}>/ 100</Text>
+              <Text style={styles.scoreDescription}>
+                {securityScore >= 80 ? 'Excellent!' : 
+                 securityScore >= 60 ? 'Good' : 
+                 'Needs attention'}
+              </Text>
+            </View>
           </View>
-          <Text style={styles.scoreDescription}>
-            {securityScore >= 80 ? 'Excellent security!' : 
-             securityScore >= 60 ? 'Good security, room for improvement' : 
-             'Security needs attention'}
-          </Text>
+          
+          {/* Progress Bar */}
+          <View style={styles.progressContainer}>
+            <View style={styles.progressTrack}>
+              <View 
+                style={[
+                  styles.progressFill, 
+                  { 
+                    width: `${securityScore}%`, 
+                    backgroundColor: scoreColor 
+                  }
+                ]} 
+              />
+            </View>
+          </View>
         </View>
 
         {/* Security Stats */}
         <View style={styles.statsContainer}>
-          <Text style={styles.sectionTitle}>Password Breakdown</Text>
+          <Text style={styles.sectionTitle}>Password Health</Text>
           
           <View style={styles.statsGrid}>
             <View style={styles.statCard}>
-              <View style={[styles.statIcon, { backgroundColor: Colors.primary + '15' }]}>
-                <Ionicons name="key" size={20} color={Colors.primary} />
+              <View style={styles.statHeader}>
+                <View style={[styles.statIcon, { backgroundColor: 'rgba(255, 255, 255, 0.06)' }]}>
+                  <Ionicons name="key-outline" size={18} color={Colors.text.secondary} />
+                </View>
+                <Text style={styles.statValue}>{stats?.totalPasswords || 0}</Text>
               </View>
-              <Text style={styles.statValue}>{stats?.totalPasswords || 0}</Text>
-              <Text style={styles.statLabel}>Total Passwords</Text>
+              <Text style={styles.statLabel}>Total</Text>
             </View>
 
             <View style={styles.statCard}>
-              <View style={[styles.statIcon, { backgroundColor: Colors.success + '15' }]}>
-                <Ionicons name="shield-checkmark" size={20} color={Colors.success} />
+              <View style={styles.statHeader}>
+                <View style={[styles.statIcon, { backgroundColor: 'rgba(52, 168, 83, 0.1)' }]}>
+                  <Ionicons name="shield-checkmark-outline" size={18} color={Colors.success} />
+                </View>
+                <Text style={[styles.statValue, { color: Colors.success }]}>{stats?.strongPasswords || 0}</Text>
               </View>
-              <Text style={[styles.statValue, { color: Colors.success }]}>{stats?.strongPasswords || 0}</Text>
               <Text style={styles.statLabel}>Strong</Text>
             </View>
 
             <View style={styles.statCard}>
-              <View style={[styles.statIcon, { backgroundColor: Colors.warning + '15' }]}>
-                <Ionicons name="warning" size={20} color={Colors.warning} />
+              <View style={styles.statHeader}>
+                <View style={[styles.statIcon, { backgroundColor: 'rgba(255, 149, 0, 0.1)' }]}>
+                  <Ionicons name="warning-outline" size={18} color={Colors.warning} />
+                </View>
+                <Text style={[styles.statValue, { color: Colors.warning }]}>{stats?.mediumPasswords || 0}</Text>
               </View>
-              <Text style={[styles.statValue, { color: Colors.warning }]}>{stats?.mediumPasswords || 0}</Text>
               <Text style={styles.statLabel}>Medium</Text>
             </View>
 
             <View style={styles.statCard}>
-              <View style={[styles.statIcon, { backgroundColor: Colors.error + '15' }]}>
-                <Ionicons name="alert-circle" size={20} color={Colors.error} />
+              <View style={styles.statHeader}>
+                <View style={[styles.statIcon, { backgroundColor: 'rgba(255, 59, 48, 0.1)' }]}>
+                  <Ionicons name="alert-circle-outline" size={18} color={Colors.error} />
+                </View>
+                <Text style={[styles.statValue, { color: Colors.error }]}>{stats?.weakPasswords || 0}</Text>
               </View>
-              <Text style={[styles.statValue, { color: Colors.error }]}>{stats?.weakPasswords || 0}</Text>
               <Text style={styles.statLabel}>Weak</Text>
             </View>
           </View>
@@ -221,46 +254,44 @@ export const SecurityDashboard: React.FC<SecurityDashboardProps> = ({ onClose })
 
         {/* Additional Stats */}
         <View style={styles.additionalStats}>
-          <Text style={styles.sectionTitle}>Additional Insights</Text>
+          <Text style={styles.sectionTitle}>Quick Insights</Text>
           
-          <View style={styles.insightCard}>
-            <View style={styles.insightHeader}>
-              <Ionicons name="copy" size={20} color={Colors.text.secondary} />
-              <Text style={styles.insightTitle}>Password Reuse</Text>
+          <View style={styles.insightGrid}>
+            <View style={styles.insightCard}>
+              <View style={styles.insightIconContainer}>
+                <Ionicons name="copy-outline" size={20} color={Colors.text.secondary} />
+              </View>
+              <View style={styles.insightContent}>
+                <Text style={styles.insightValue}>
+                  {stats?.reusedPasswords || 0}
+                </Text>
+                <Text style={styles.insightLabel}>Reused</Text>
+              </View>
             </View>
-            <Text style={styles.insightValue}>
-              {stats?.reusedPasswords || 0} passwords are reused
-            </Text>
-            <Text style={styles.insightDescription}>
-              {stats?.reusedPasswords === 0 ? 
-                'Great! No passwords are reused.' : 
-                'Consider creating unique passwords for each account.'}
-            </Text>
-          </View>
 
-          <View style={styles.insightCard}>
-            <View style={styles.insightHeader}>
-              <Ionicons name="resize" size={20} color={Colors.text.secondary} />
-              <Text style={styles.insightTitle}>Average Length</Text>
+            <View style={styles.insightCard}>
+              <View style={styles.insightIconContainer}>
+                <Ionicons name="resize-outline" size={20} color={Colors.text.secondary} />
+              </View>
+              <View style={styles.insightContent}>
+                <Text style={styles.insightValue}>
+                  {stats?.averageLength || 0}
+                </Text>
+                <Text style={styles.insightLabel}>Avg Length</Text>
+              </View>
             </View>
-            <Text style={styles.insightValue}>
-              {stats?.averageLength || 0} characters
-            </Text>
-            <Text style={styles.insightDescription}>
-              {(stats?.averageLength || 0) >= 12 ? 
-                'Good password length!' : 
-                'Consider using longer passwords (12+ characters).'}
-            </Text>
           </View>
         </View>
 
         {/* Recommendations */}
         <View style={styles.recommendationsSection}>
-          <Text style={styles.sectionTitle}>Security Recommendations</Text>
+          <Text style={styles.sectionTitle}>Security Tips</Text>
           <View style={styles.recommendationsList}>
             {stats?.weakPasswords ? (
               <View style={styles.recommendationItem}>
-                <Ionicons name="checkmark-circle" size={16} color={Colors.primary} />
+                <View style={styles.recommendationIcon}>
+                  <Ionicons name="alert-circle-outline" size={16} color={Colors.error} />
+                </View>
                 <Text style={styles.recommendationText}>
                   Update {stats.weakPasswords} weak password{stats.weakPasswords > 1 ? 's' : ''}
                 </Text>
@@ -269,24 +300,30 @@ export const SecurityDashboard: React.FC<SecurityDashboardProps> = ({ onClose })
             
             {stats?.reusedPasswords ? (
               <View style={styles.recommendationItem}>
-                <Ionicons name="checkmark-circle" size={16} color={Colors.primary} />
+                <View style={styles.recommendationIcon}>
+                  <Ionicons name="copy-outline" size={16} color={Colors.warning} />
+                </View>
                 <Text style={styles.recommendationText}>
-                  Create unique passwords for {stats.reusedPasswords} reused password{stats.reusedPasswords > 1 ? 's' : ''}
+                  Make {stats.reusedPasswords} reused password{stats.reusedPasswords > 1 ? 's' : ''} unique
                 </Text>
               </View>
             ) : null}
 
             <View style={styles.recommendationItem}>
-              <Ionicons name="checkmark-circle" size={16} color={Colors.primary} />
+              <View style={styles.recommendationIcon}>
+                <Ionicons name="shield-checkmark-outline" size={16} color={Colors.success} />
+              </View>
               <Text style={styles.recommendationText}>
-                Enable biometric authentication for extra security
+                Use biometric authentication for extra security
               </Text>
             </View>
 
             <View style={styles.recommendationItem}>
-              <Ionicons name="checkmark-circle" size={16} color={Colors.primary} />
+              <View style={styles.recommendationIcon}>
+                <Ionicons name="time-outline" size={16} color={Colors.info} />
+              </View>
               <Text style={styles.recommendationText}>
-                Regularly update your passwords every 3-6 months
+                Update passwords every 3-6 months
               </Text>
             </View>
           </View>
@@ -305,76 +342,125 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 20,
+    paddingHorizontal: 24,
     paddingTop: 60,
     paddingBottom: 20,
     backgroundColor: Colors.background,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.divider,
+    borderBottomWidth: 0.5,
+    borderBottomColor: 'rgba(255, 255, 255, 0.08)',
   },
   headerTitle: {
-    fontSize: 24,
-    fontWeight: '700',
+    fontSize: 20,
+    fontWeight: '600',
     color: Colors.text.primary,
+    letterSpacing: -0.3,
   },
   closeButton: {
     padding: 8,
     borderRadius: 20,
     backgroundColor: Colors.surface,
+    borderWidth: 0.5,
+    borderColor: 'rgba(255, 255, 255, 0.08)',
   },
   content: {
     flex: 1,
-    padding: 20,
+    paddingHorizontal: 24,
+    paddingTop: 8,
   },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    paddingHorizontal: 32,
+  },
+  loadingIcon: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: Colors.surface,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 24,
+    borderWidth: 0.5,
+    borderColor: 'rgba(255, 255, 255, 0.08)',
   },
   loadingText: {
-    fontSize: 16,
-    color: Colors.text.secondary,
+    fontSize: 18,
+    fontWeight: '500',
+    color: Colors.text.primary,
+    marginBottom: 8,
+  },
+  loadingSubtext: {
+    fontSize: 14,
+    color: Colors.text.tertiary,
+    textAlign: 'center',
   },
   scoreCard: {
     backgroundColor: Colors.surface,
     borderRadius: 16,
-    padding: 24,
-    alignItems: 'center',
+    padding: 20,
     marginBottom: 24,
+    borderWidth: 0.5,
+    borderColor: 'rgba(255, 255, 255, 0.08)',
+  },
+  scoreHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 16,
   },
   scoreTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: Colors.text.secondary,
-    marginBottom: 16,
+    color: Colors.text.primary,
+    marginLeft: 12,
   },
   scoreDisplay: {
     flexDirection: 'row',
-    alignItems: 'baseline',
-    marginBottom: 12,
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 16,
   },
   scoreValue: {
     fontSize: 48,
-    fontWeight: '800',
+    fontWeight: '700',
+    letterSpacing: -1,
+  },
+  scoreInfo: {
+    alignItems: 'flex-end',
   },
   scoreLabel: {
-    fontSize: 20,
+    fontSize: 18,
     color: Colors.text.tertiary,
-    marginLeft: 4,
+    fontWeight: '400',
   },
   scoreDescription: {
     fontSize: 14,
     color: Colors.text.secondary,
-    textAlign: 'center',
+    fontWeight: '500',
+    marginTop: 4,
+  },
+  progressContainer: {
+    marginTop: 8,
+  },
+  progressTrack: {
+    height: 6,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    borderRadius: 3,
+    overflow: 'hidden',
+  },
+  progressFill: {
+    height: '100%',
+    borderRadius: 3,
   },
   statsContainer: {
     marginBottom: 24,
   },
   sectionTitle: {
-    fontSize: 18,
-    fontWeight: '700',
+    fontSize: 16,
+    fontWeight: '600',
     color: Colors.text.primary,
     marginBottom: 16,
+    letterSpacing: -0.2,
   },
   statsGrid: {
     flexDirection: 'row',
@@ -385,38 +471,106 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.surface,
     borderRadius: 12,
     padding: 16,
-    alignItems: 'center',
     flex: 1,
     minWidth: '45%',
+    borderWidth: 0.5,
+    borderColor: 'rgba(255, 255, 255, 0.06)',
+  },
+  statHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 8,
   },
   statIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 32,
+    height: 32,
+    borderRadius: 8,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 12,
   },
   statValue: {
-    fontSize: 24,
+    fontSize: 20,
     fontWeight: '700',
     color: Colors.text.primary,
-    marginBottom: 4,
   },
   statLabel: {
     fontSize: 12,
-    color: Colors.text.secondary,
-    textAlign: 'center',
+    color: Colors.text.tertiary,
+    fontWeight: '500',
   },
   additionalStats: {
     marginBottom: 24,
+  },
+  insightGrid: {
+    flexDirection: 'row',
+    gap: 12,
   },
   insightCard: {
     backgroundColor: Colors.surface,
     borderRadius: 12,
     padding: 16,
-    marginBottom: 12,
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 0.5,
+    borderColor: 'rgba(255, 255, 255, 0.06)',
   },
+  insightIconContainer: {
+    width: 36,
+    height: 36,
+    borderRadius: 8,
+    backgroundColor: 'rgba(255, 255, 255, 0.06)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+  },
+  insightContent: {
+    flex: 1,
+  },
+  insightValue: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: Colors.text.primary,
+    marginBottom: 2,
+  },
+  insightLabel: {
+    fontSize: 12,
+    color: Colors.text.tertiary,
+    fontWeight: '500',
+  },
+  recommendationsSection: {
+    marginBottom: 32,
+  },
+  recommendationsList: {
+    gap: 8,
+  },
+  recommendationItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Colors.surface,
+    padding: 16,
+    borderRadius: 12,
+    borderWidth: 0.5,
+    borderColor: 'rgba(255, 255, 255, 0.06)',
+  },
+  recommendationIcon: {
+    width: 28,
+    height: 28,
+    borderRadius: 6,
+    backgroundColor: 'rgba(255, 255, 255, 0.06)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+  },
+  recommendationText: {
+    fontSize: 14,
+    color: Colors.text.primary,
+    flex: 1,
+    lineHeight: 18,
+    fontWeight: '400',
+  },
+  // Legacy styles - keeping for backward compatibility
   insightHeader: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -428,35 +582,9 @@ const styles = StyleSheet.create({
     color: Colors.text.primary,
     marginLeft: 8,
   },
-  insightValue: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: Colors.text.primary,
-    marginBottom: 4,
-  },
   insightDescription: {
     fontSize: 14,
     color: Colors.text.secondary,
-    lineHeight: 20,
-  },
-  recommendationsSection: {
-    marginBottom: 24,
-  },
-  recommendationsList: {
-    gap: 12,
-  },
-  recommendationItem: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    backgroundColor: Colors.surface,
-    padding: 16,
-    borderRadius: 12,
-  },
-  recommendationText: {
-    fontSize: 14,
-    color: Colors.text.primary,
-    marginLeft: 12,
-    flex: 1,
     lineHeight: 20,
   },
 });
