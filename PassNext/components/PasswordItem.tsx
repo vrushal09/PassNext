@@ -35,6 +35,24 @@ export const PasswordItem: React.FC<PasswordItemProps> = ({
   const swipeThreshold = 100;
   const { alertState, hideAlert, showSuccess, showError, showDestructiveConfirm } = useCustomAlert();
 
+  // Calculate password strength
+  const getPasswordStrength = (password: string): { score: number; label: string; color: string } => {
+    let score = 0;
+    if (password.length >= 8) score += 1;
+    if (password.length >= 12) score += 1;
+    if (/[a-z]/.test(password)) score += 1;
+    if (/[A-Z]/.test(password)) score += 1;
+    if (/[0-9]/.test(password)) score += 1;
+    if (/[^A-Za-z0-9]/.test(password)) score += 1;
+    
+    if (score <= 2) return { score, label: 'Weak', color: '#FF6B6B' };
+    if (score <= 4) return { score, label: 'Fair', color: '#FFB946' };
+    if (score <= 5) return { score, label: 'Good', color: '#51CF66' };
+    return { score, label: 'Strong', color: '#22C55E' };
+  };
+
+  const passwordStrength = getPasswordStrength(password.password);
+
   const formatDate = (date: Date) => {
     return date.toLocaleDateString('en-US', {
       year: 'numeric',
@@ -446,5 +464,24 @@ const styles = StyleSheet.create({
   date: {
     fontSize: 11,
     color: Colors.text.tertiary,
+  },
+  serviceHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 2,
+  },
+  strengthIndicator: {
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+    marginLeft: 8,
+  },
+  strengthText: {
+    fontSize: 9,
+    fontWeight: '600',
+    color: '#FFFFFF',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
 });

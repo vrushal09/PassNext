@@ -39,8 +39,8 @@ export const ServiceLogo: React.FC<ServiceLogoProps> = ({
       
       // Tech & Cloud
       apple: { name: 'phone-portrait-outline', color: '#ffffffff' }, // Alternative for Expo Go
-      microsoft: { name: 'desktop-outline', color: '#00BCF2' }, // Alternative for Expo Go
-      amazon: { name: 'storefront-outline', color: '#FF9900' }, // Alternative for Expo Go
+      microsoft: { name: 'logo-microsoft', color: '#00BCF2' }, // Alternative for Expo Go
+      amazon: { name: 'logo-amazon', color: '#FF9900' }, // Alternative for Expo Go
       netflix: { name: 'tv-outline', color: '#E50914' },
       spotify: { name: 'musical-notes-outline', color: '#1DB954' },
       dropbox: { name: 'cloud-upload-outline', color: '#0061FF' }, // Alternative for Expo Go

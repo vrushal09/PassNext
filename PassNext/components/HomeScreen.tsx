@@ -39,10 +39,8 @@ export const HomeScreen: React.FC = () => {
   const [selectedPassword, setSelectedPassword] = useState<Password | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [currentTab, setCurrentTab] = useState('home');
-  const [sortBy, setSortBy] = useState<'name' | 'date' | 'recent'>('recent');
-  const [showSecurityDashboard, setShowSecurityDashboard] = useState(false);
-
-  // Load passwords on component mount
+  const [filterByStrength, setFilterByStrength] = useState<'all' | 'weak' | 'fair' | 'strong'>('all');
+  const [showSecurityDashboard, setShowSecurityDashboard] = useState(false);  // Load passwords on component mount
   useEffect(() => {
     if (user) {
       loadPasswords();
@@ -62,21 +60,34 @@ export const HomeScreen: React.FC = () => {
       );
     }
     
-    // Sort passwords
-    filtered = filtered.sort((a, b) => {
-      switch (sortBy) {
-        case 'name':
-          return a.service.localeCompare(b.service);
-        case 'date':
-          return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-        case 'recent':
-        default:
-          return new Date(b.updatedAt || b.createdAt).getTime() - new Date(a.updatedAt || a.createdAt).getTime();
-      }
-    });
+    // Apply strength filter
+    if (filterByStrength !== 'all') {
+      const getStrengthScore = (pwd: string): number => {
+        let score = 0;
+        if (pwd.length >= 8) score += 1;
+        if (pwd.length >= 12) score += 1;
+        if (/[a-z]/.test(pwd)) score += 1;
+        if (/[A-Z]/.test(pwd)) score += 1;
+        if (/[0-9]/.test(pwd)) score += 1;
+        if (/[^A-Za-z0-9]/.test(pwd)) score += 1;
+        return score;
+      };
+      
+      filtered = filtered.filter(password => {
+        const score = getStrengthScore(password.password);
+        const isWeak = score <= 2;
+        const isFair = score === 3 || score === 4;
+        const isStrong = score >= 5;
+        
+        if (filterByStrength === 'weak' && !isWeak) return false;
+        if (filterByStrength === 'fair' && !isFair) return false;
+        if (filterByStrength === 'strong' && !isStrong) return false;
+        return true;
+      });
+    }
     
     setFilteredPasswords(filtered);
-  }, [searchQuery, passwords, sortBy]);
+  }, [searchQuery, passwords, filterByStrength]);
 
   const loadPasswords = async () => {
     if (!user) return;
@@ -120,13 +131,6 @@ export const HomeScreen: React.FC = () => {
 
   const handleTabPress = (tab: string) => {
     setCurrentTab(tab);
-  };
-
-  const handleSortPress = () => {
-    const sortOptions = ['recent', 'name', 'date'] as const;
-    const currentIndex = sortOptions.indexOf(sortBy);
-    const nextIndex = (currentIndex + 1) % sortOptions.length;
-    setSortBy(sortOptions[nextIndex]);
   };
 
   const handleLogout = async () => {
@@ -206,6 +210,72 @@ export const HomeScreen: React.FC = () => {
                       </View>
                     </View>
 
+                    {/* Quick Filters */}
+                    {passwords.length > 0 && (
+                      <View style={styles.quickFilters}>
+                        <TouchableOpacity
+                          style={[
+                            styles.filterChip,
+                            filterByStrength === 'all' && styles.filterChipActive
+                          ]}
+                          onPress={() => setFilterByStrength('all')}
+                        >
+                          <Text style={[
+                            styles.filterChipText,
+                            filterByStrength === 'all' && styles.filterChipTextActive
+                          ]}>All</Text>
+                        </TouchableOpacity>
+                        
+                        <TouchableOpacity
+                          style={[
+                            styles.filterChip,
+                            styles.filterChipWeak,
+                            filterByStrength === 'weak' && styles.filterChipActive
+                          ]}
+                          onPress={() => setFilterByStrength('weak')}
+                        >
+                          <Ionicons name="shield-outline" size={12} color={filterByStrength === 'weak' ? Colors.background : '#FF6B6B'} />
+                          <Text style={[
+                            styles.filterChipText,
+                            { color: filterByStrength === 'weak' ? Colors.background : '#FF6B6B' },
+                            filterByStrength === 'weak' && styles.filterChipTextActive
+                          ]}>Weak</Text>
+                        </TouchableOpacity>
+                        
+                        <TouchableOpacity
+                          style={[
+                            styles.filterChip,
+                            styles.filterChipFair,
+                            filterByStrength === 'fair' && styles.filterChipActive
+                          ]}
+                          onPress={() => setFilterByStrength('fair')}
+                        >
+                          <Ionicons name="shield-half-outline" size={12} color={filterByStrength === 'fair' ? Colors.background : '#FFB946'} />
+                          <Text style={[
+                            styles.filterChipText,
+                            { color: filterByStrength === 'fair' ? Colors.background : '#FFB946' },
+                            filterByStrength === 'fair' && styles.filterChipTextActive
+                          ]}>Fair</Text>
+                        </TouchableOpacity>
+                        
+                        <TouchableOpacity
+                          style={[
+                            styles.filterChip,
+                            styles.filterChipStrong,
+                            filterByStrength === 'strong' && styles.filterChipActive
+                          ]}
+                          onPress={() => setFilterByStrength('strong')}
+                        >
+                          <Ionicons name="shield-checkmark" size={12} color={filterByStrength === 'strong' ? Colors.background : '#22C55E'} />
+                          <Text style={[
+                            styles.filterChipText,
+                            { color: filterByStrength === 'strong' ? Colors.background : '#22C55E' },
+                            filterByStrength === 'strong' && styles.filterChipTextActive
+                          ]}>Strong</Text>
+                        </TouchableOpacity>
+                      </View>
+                    )}
+
                     {/* Security Analytics */}
                     {passwords.length > 0 && (
                       <TouchableOpacity 
@@ -230,16 +300,13 @@ export const HomeScreen: React.FC = () => {
                         <Text style={styles.sectionSubtitle}>
                           {filteredPasswords.length} {filteredPasswords.length === 1 ? 'item' : 'items'}
                           {searchQuery.length > 0 && ` for "${searchQuery}"`}
+                          {filterByStrength !== 'all' && (
+                            <Text style={styles.filterIndicator}>
+                              {' • '}{filterByStrength} passwords
+                            </Text>
+                          )}
                         </Text>
                       </View>
-                      {passwords.length > 0 && (
-                        <TouchableOpacity style={styles.sortButton} onPress={handleSortPress}>
-                          <Ionicons name="swap-vertical-outline" size={14} color={Colors.text.tertiary} />
-                          <Text style={styles.sortButtonText}>
-                            {sortBy === 'recent' ? 'Recent' : sortBy === 'name' ? 'A-Z' : 'Date'}
-                          </Text>
-                        </TouchableOpacity>
-                      )}
                     </View>
                   </View>
                 }
@@ -441,6 +508,49 @@ const styles = StyleSheet.create({
     padding: 4,
     marginLeft: 8,
   },
+  quickFilters: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 24,
+    paddingVertical: 8,
+    paddingBottom: 16,
+    gap: 8,
+  },
+  filterChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+    backgroundColor: 'rgba(255, 255, 255, 0.02)',
+    gap: 4,
+  },
+  filterChipActive: {
+    backgroundColor: Colors.primary,
+    borderColor: Colors.primary,
+  },
+  filterChipWeak: {
+    borderColor: 'rgba(255, 107, 107, 0.3)',
+    backgroundColor: 'rgba(255, 107, 107, 0.05)',
+  },
+  filterChipFair: {
+    borderColor: 'rgba(255, 185, 70, 0.3)',
+    backgroundColor: 'rgba(255, 185, 70, 0.05)',
+  },
+  filterChipStrong: {
+    borderColor: 'rgba(34, 197, 94, 0.3)',
+    backgroundColor: 'rgba(34, 197, 94, 0.05)',
+  },
+  filterChipText: {
+    fontSize: 11,
+    fontWeight: '500',
+    color: Colors.text.tertiary,
+  },
+  filterChipTextActive: {
+    color: Colors.background,
+  },
   analyticsButton: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -504,6 +614,16 @@ const styles = StyleSheet.create({
     color: Colors.text.tertiary,
     fontWeight: '400',
   },
+  sortIndicator: {
+    fontSize: 11,
+    color: Colors.primary,
+    fontWeight: '500',
+  },
+  filterIndicator: {
+    fontSize: 11,
+    color: '#FFB946',
+    fontWeight: '500',
+  },
   sortButton: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -514,6 +634,73 @@ const styles = StyleSheet.create({
     borderWidth: 0.5,
     borderColor: 'rgba(255, 255, 255, 0.08)',
     gap: 4,
+  },
+  sortContainer: {
+    position: 'relative',
+  },
+  sortMenuBackdrop: {
+    position: 'absolute',
+    top: -1000,
+    left: -1000,
+    right: -1000,
+    bottom: -1000,
+    backgroundColor: 'transparent',
+    zIndex: 9998,
+  },
+  sortMenu: {
+    position: 'absolute',
+    top: '100%',
+    right: 0,
+    backgroundColor: Colors.surface,
+    borderRadius: 12,
+    borderWidth: 0.5,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+    minWidth: 180,
+    marginTop: 4,
+    zIndex: 9999,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 10,
+  },
+  sortMenuItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderBottomWidth: 0.5,
+    borderBottomColor: 'rgba(255, 255, 255, 0.05)',
+  },
+  sortMenuItemActive: {
+    backgroundColor: 'rgba(138, 43, 226, 0.1)',
+  },
+  sortMenuItemContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+    gap: 12,
+  },
+  sortMenuItemText: {
+    fontSize: 14,
+    color: Colors.text.secondary,
+    fontWeight: '400',
+  },
+  sortMenuItemTextActive: {
+    color: Colors.primary,
+    fontWeight: '500',
+  },
+  sortOrderIndicator: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: 'rgba(138, 43, 226, 0.15)',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   sortButtonText: {
     fontSize: 11,
