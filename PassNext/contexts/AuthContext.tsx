@@ -31,14 +31,35 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   useEffect(() => {
     console.log('Setting up Firebase Auth listener...');
+    
+    // Set initial loading state
+    setLoading(true);
+    setInitialized(false);
+    
     const unsubscribe = onAuthStateChanged(auth, (user) => {
-      console.log('Auth state changed:', user ? 'User logged in' : 'User logged out');
+      console.log('Auth state changed:', user ? `User logged in: ${user.uid}` : 'User logged out');
       setUser(user);
+      setLoading(false);
+      setInitialized(true);
+    }, (error) => {
+      console.error('Auth state change error:', error);
       setLoading(false);
       setInitialized(true);
     });
 
-    return unsubscribe;
+    // Give Firebase a moment to check for persisted auth state
+    const timeout = setTimeout(() => {
+      if (!initialized) {
+        console.log('Auth initialization timeout - assuming no persisted user');
+        setLoading(false);
+        setInitialized(true);
+      }
+    }, 3000); // Wait up to 3 seconds for auth state to be determined
+
+    return () => {
+      unsubscribe();
+      clearTimeout(timeout);
+    };
   }, []);
 
   const logout = async () => {
