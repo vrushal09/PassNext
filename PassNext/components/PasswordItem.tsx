@@ -232,7 +232,7 @@ export const PasswordItem: React.FC<PasswordItemProps> = ({
               activeOpacity={0.8}
             >
               {/* Service Icon */}
-              <ServiceLogo serviceName={password.service} size={24} style={styles.serviceIconStyle} />
+              <ServiceLogo serviceName={password.service} size={32} style={styles.serviceIconStyle} />
               
               {/* Service Info */}
               <View style={styles.serviceInfo}>
