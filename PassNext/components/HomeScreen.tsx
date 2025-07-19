@@ -15,7 +15,6 @@ import {
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import Colors from '../constants/Colors';
 import { useAuth } from '../contexts/AuthContext';
-import { useNotifications } from '../contexts/NotificationContext';
 import { useCustomAlert } from '../hooks/useCustomAlert';
 import { authService } from '../services/authService';
 import { Password, passwordService } from '../services/passwordService';
@@ -28,7 +27,6 @@ import SecurityDashboard from './SecurityDashboard';
 
 export const HomeScreen: React.FC = () => {
   const { user } = useAuth();
-  const { checkForNotifications } = useNotifications();
   const { alertState, showAlert, hideAlert, showSuccess, showError, showConfirm, showDestructiveConfirm } = useCustomAlert();
   
   // Password management state
@@ -99,10 +97,6 @@ export const HomeScreen: React.FC = () => {
     
     if (result.success && result.passwords) {
       setPasswords(result.passwords);
-      // Check for notifications after loading passwords
-      setTimeout(() => {
-        checkForNotifications();
-      }, 1000);
     } else {
       showError('Error', result.error || 'Failed to load passwords');
     }
