@@ -1,3 +1,4 @@
+import { Ionicons } from '@expo/vector-icons';
 import React, { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
@@ -159,8 +160,11 @@ export const BiometricAuthScreen: React.FC<BiometricAuthScreenProps> = ({
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={Colors.primary} />
-          <Text style={styles.loadingText}>Initializing biometric authentication...</Text>
+          <View style={styles.loadingIconContainer}>
+            <ActivityIndicator size="large" color={Colors.primary} />
+          </View>
+          <Text style={styles.loadingText}>Setting up security...</Text>
+          <Text style={styles.loadingSubtext}>Please wait a moment</Text>
         </View>
       </SafeAreaView>
     );
@@ -171,16 +175,17 @@ export const BiometricAuthScreen: React.FC<BiometricAuthScreenProps> = ({
       <SafeAreaView style={styles.container}>
         <View style={styles.content}>
           <View style={styles.iconContainer}>
-            <Text style={styles.icon}>🔒</Text>
+            <Ionicons name="shield-outline" size={64} color={Colors.error} />
           </View>
           
-          <Text style={styles.title}>Biometric Authentication Required</Text>
+          <Text style={styles.title}>Security Setup Required</Text>
           <Text style={styles.subtitle}>
-            This app requires biometric authentication to be set up on your device. Please set up fingerprint, Face ID, or other biometric authentication in your device settings and restart the app.
+            Enable fingerprint, Face ID, or PIN authentication in your device settings to secure your passwords.
           </Text>
           
-          <TouchableOpacity style={styles.button} onPress={initializeBiometricAuth}>
-            <Text style={styles.buttonText}>Check Again</Text>
+          <TouchableOpacity style={styles.retryButton} onPress={initializeBiometricAuth}>
+            <Ionicons name="refresh-outline" size={20} color={Colors.text.primary} style={styles.retryIcon} />
+            <Text style={styles.retryButtonText}>Check Again</Text>
           </TouchableOpacity>
         </View>
       </SafeAreaView>
@@ -192,31 +197,54 @@ export const BiometricAuthScreen: React.FC<BiometricAuthScreenProps> = ({
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.content}>
+        {/* App Branding */}
+        <View style={styles.brandContainer}>
+          <Text style={styles.appName}>PassNext</Text>
+          <Text style={styles.tagline}>Secure • Simple • Private</Text>
+        </View>
+
+        {/* Biometric Icon */}
         <View style={styles.iconContainer}>
-          <Text style={styles.icon}>
-            {biometricTypes.includes('Face ID') ? '👤' : '👆'}
-          </Text>
+          <View style={styles.biometricIconWrapper}>
+            <Ionicons 
+              name={biometricTypes.includes('Face ID') ? "scan-outline" : "finger-print-outline"} 
+              size={48} 
+              color={Colors.primary} 
+            />
+          </View>
         </View>
         
-        <Text style={styles.title}>Secure Access</Text>
+        <Text style={styles.title}>Unlock with {authTypeName}</Text>
         <Text style={styles.subtitle}>
-          Use {authTypeName} to quickly and securely access PassNext
+          Authenticate to securely access your passwords
         </Text>
         
+        {/* Main Auth Button */}
         <TouchableOpacity 
-          style={[styles.button, isAuthenticating && styles.buttonDisabled]} 
+          style={[styles.authButton, isAuthenticating && styles.authButtonDisabled]} 
           onPress={handleBiometricAuth}
           disabled={isAuthenticating}
         >
           {isAuthenticating ? (
-            <ActivityIndicator color={Colors.text.inverse} />
+            <View style={styles.authButtonContent}>
+              <ActivityIndicator color={Colors.background} size="small" />
+              <Text style={styles.authButtonTextLoading}>Authenticating...</Text>
+            </View>
           ) : (
-            <Text style={styles.buttonText}>Use {authTypeName}</Text>
+            <View style={styles.authButtonContent}>
+              <Ionicons 
+                name={biometricTypes.includes('Face ID') ? "scan" : "finger-print"} 
+                size={20} 
+                color={Colors.background} 
+                style={styles.authButtonIcon}
+              />
+              <Text style={styles.authButtonText}>Authenticate</Text>
+            </View>
           )}
         </TouchableOpacity>
 
-        <Text style={styles.requiredText}>
-          Biometric authentication is required to access this app
+        <Text style={styles.securityNote}>
+          Your biometric data stays secure on your device
         </Text>
       </View>
     </SafeAreaView>
@@ -232,44 +260,142 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    paddingHorizontal: 32,
+  },
+  loadingIconContainer: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: Colors.surface,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 24,
+    borderWidth: 0.5,
+    borderColor: 'rgba(255, 255, 255, 0.08)',
   },
   loadingText: {
-    marginTop: 10,
-    fontSize: 16,
-    color: Colors.text.secondary,
+    fontSize: 18,
+    fontWeight: '500',
+    color: Colors.text.primary,
+    marginBottom: 8,
+  },
+  loadingSubtext: {
+    fontSize: 14,
+    color: Colors.text.tertiary,
+    textAlign: 'center',
   },
   content: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 20,
+    paddingHorizontal: 32,
+  },
+  brandContainer: {
+    alignItems: 'center',
+    marginBottom: 60,
+  },
+  appName: {
+    fontSize: 32,
+    fontWeight: '600',
+    color: Colors.text.primary,
+    letterSpacing: -0.5,
+    marginBottom: 8,
+  },
+  tagline: {
+    fontSize: 14,
+    color: Colors.text.tertiary,
+    fontWeight: '400',
   },
   iconContainer: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
+    marginBottom: 32,
+  },
+  biometricIconWrapper: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
     backgroundColor: Colors.surface,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 40,
-  },
-  icon: {
-    fontSize: 48,
+    borderWidth: 0.5,
+    borderColor: 'rgba(255, 255, 255, 0.08)',
   },
   title: {
-    fontSize: 28,
-    fontWeight: 'bold',
+    fontSize: 24,
+    fontWeight: '600',
     color: Colors.text.primary,
-    marginBottom: 16,
+    marginBottom: 12,
     textAlign: 'center',
+    letterSpacing: -0.3,
   },
   subtitle: {
-    fontSize: 16,
+    fontSize: 15,
     color: Colors.text.secondary,
     textAlign: 'center',
     lineHeight: 22,
     marginBottom: 40,
-    paddingHorizontal: 20,
+    fontWeight: '400',
+  },
+  authButton: {
+    backgroundColor: Colors.primary,
+    paddingVertical: 16,
+    paddingHorizontal: 32,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    minWidth: 240,
+    minHeight: 52,
+    marginBottom: 24,
+  },
+  authButtonDisabled: {
+    opacity: 0.6,
+  },
+  authButtonContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  authButtonIcon: {
+    marginRight: 8,
+  },
+  authButtonText: {
+    color: Colors.background,
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  authButtonTextLoading: {
+    color: Colors.background,
+    fontSize: 16,
+    fontWeight: '600',
+    marginLeft: 8,
+  },
+  retryButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Colors.surface,
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 10,
+    borderWidth: 0.5,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+  },
+  retryIcon: {
+    marginRight: 8,
+  },
+  retryButtonText: {
+    color: Colors.text.primary,
+    fontSize: 15,
+    fontWeight: '500',
+  },
+  securityNote: {
+    color: Colors.text.tertiary,
+    fontSize: 13,
+    textAlign: 'center',
+    fontWeight: '400',
+    lineHeight: 18,
+  },
+  // Legacy styles - keeping for backward compatibility
+  icon: {
+    fontSize: 48,
   },
   button: {
     backgroundColor: Colors.button.primary,
