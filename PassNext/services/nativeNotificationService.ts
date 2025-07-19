@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import PushNotification, { Importance } from 'react-native-push-notification';
 import { Platform } from 'react-native';
+import PushNotification, { Importance } from 'react-native-push-notification';
 import { Password } from './passwordService';
 import { passwordStrengthService } from './passwordStrengthService';
 
