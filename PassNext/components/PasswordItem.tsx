@@ -17,6 +17,7 @@ import { useCustomAlert } from '../hooks/useCustomAlert';
 import { biometricAuthService } from '../services/biometricAuthService';
 import { Password } from '../services/passwordService';
 import { CustomAlert } from './CustomAlert';
+import { ServiceLogo } from './ServiceLogo';
 
 interface PasswordItemProps {
   password: Password;
@@ -72,135 +73,6 @@ export const PasswordItem: React.FC<PasswordItemProps> = ({
       // If biometric auth is not available, copy directly
       await copyToClipboard(password.password, 'Password');
     }
-  };
-
-  // Get service icon based on service name
-  const getServiceIcon = (serviceName: string) => {
-    const service = serviceName.toLowerCase();
-    
-    // Define icon mappings for popular services with original brand colors
-    const iconMap: { [key: string]: { name: any; color: string } } = {
-      google: { name: 'logo-google', color: '#4285F4' },
-      gmail: { name: 'mail', color: '#EA4335' },
-      youtube: { name: 'logo-youtube', color: '#FF0000' },
-      facebook: { name: 'logo-facebook', color: '#1877F2' },
-      instagram: { name: 'logo-instagram', color: '#E4405F' },
-      twitter: { name: 'logo-twitter', color: '#1DA1F2' },
-      x: { name: 'logo-twitter', color: '#000000' },
-      linkedin: { name: 'logo-linkedin', color: '#0A66C2' },
-      github: { name: 'logo-github', color: '#333333' },
-      apple: { name: 'logo-apple', color: '#000000' },
-      icloud: { name: 'cloud', color: '#007AFF' },
-      microsoft: { name: 'logo-microsoft', color: '#00A4EF' },
-      outlook: { name: 'mail', color: '#0078D4' },
-      office: { name: 'document-text', color: '#0078D4' },
-      amazon: { name: 'logo-amazon', color: '#FF9900' },
-      netflix: { name: 'tv', color: '#E50914' },
-      spotify: { name: 'musical-notes', color: '#1DB954' },
-      dropbox: { name: 'logo-dropbox', color: '#0061FF' },
-      dribbble: { name: 'logo-dribbble', color: '#EA4C89' },
-      slack: { name: 'chatbubbles', color: '#4A154B' },
-      discord: { name: 'game-controller', color: '#5865F2' },
-      paypal: { name: 'logo-paypal', color: '#00457C' },
-      stripe: { name: 'card', color: '#635BFF' },
-      mastercard: { name: 'card', color: '#EB001B' },
-      visa: { name: 'card', color: '#1A1F71' },
-      bank: { name: 'card', color: '#2E7D32' },
-      chase: { name: 'card', color: '#004879' },
-      wells: { name: 'card', color: '#D71921' },
-      bofa: { name: 'card', color: '#DC143C' },
-      citi: { name: 'card', color: '#056BAE' },
-      amex: { name: 'card', color: '#006FCF' },
-      discover: { name: 'card', color: '#FF6000' },
-      whatsapp: { name: 'chatbubble', color: '#25D366' },
-      telegram: { name: 'paper-plane', color: '#0088CC' },
-      signal: { name: 'shield-checkmark', color: '#3A76F0' },
-      tiktok: { name: 'musical-notes', color: '#FF0050' },
-      snapchat: { name: 'camera', color: '#FFFC00' },
-      reddit: { name: 'logo-reddit', color: '#FF4500' },
-      pinterest: { name: 'image', color: '#BD081C' },
-      tumblr: { name: 'logo-tumblr', color: '#001935' },
-      twitch: { name: 'videocam', color: '#9146FF' },
-      zoom: { name: 'videocam', color: '#2D8CFF' },
-      skype: { name: 'logo-skype', color: '#00AFF0' },
-      teams: { name: 'people', color: '#6264A7' },
-      adobe: { name: 'color-palette', color: '#FF0000' },
-      photoshop: { name: 'image', color: '#31A8FF' },
-      illustrator: { name: 'brush', color: '#FF9A00' },
-      canva: { name: 'brush', color: '#00C4CC' },
-      figma: { name: 'shapes', color: '#F24E1E' },
-      sketch: { name: 'diamond', color: '#FDB300' },
-      wordpress: { name: 'logo-wordpress', color: '#21759B' },
-      shopify: { name: 'storefront', color: '#7AB55C' },
-      woocommerce: { name: 'bag', color: '#96588A' },
-      squarespace: { name: 'square', color: '#000000' },
-      wix: { name: 'brush', color: '#0C6EBD' },
-      ebay: { name: 'pricetag', color: '#E53238' },
-      etsy: { name: 'gift', color: '#F1641E' },
-      alibaba: { name: 'bag', color: '#FF6A00' },
-      uber: { name: 'car', color: '#000000' },
-      lyft: { name: 'car-sport', color: '#FF00BF' },
-      airbnb: { name: 'home', color: '#FF5A5F' },
-      booking: { name: 'bed', color: '#003580' },
-      expedia: { name: 'airplane', color: '#FFC72C' },
-      tripadvisor: { name: 'location', color: '#00AF87' },
-      duolingo: { name: 'school', color: '#58CC02' },
-      coursera: { name: 'library', color: '#0056D3' },
-      udemy: { name: 'play', color: '#A435F0' },
-      khan: { name: 'school', color: '#14BF96' },
-      medium: { name: 'document-text', color: '#00AB6C' },
-      substack: { name: 'newspaper', color: '#FF6719' },
-      notion: { name: 'document-text', color: '#000000' },
-      evernote: { name: 'bookmark', color: '#00A82D' },
-      onenote: { name: 'document-text', color: '#7719AA' },
-      trello: { name: 'list', color: '#0052CC' },
-      asana: { name: 'checkmark-circle', color: '#F06A6A' },
-      monday: { name: 'calendar', color: '#FF3D57' },
-      jira: { name: 'bug', color: '#0052CC' },
-      confluence: { name: 'document-text', color: '#172B4D' },
-      bitbucket: { name: 'git-branch', color: '#0052CC' },
-      gitlab: { name: 'git-branch', color: '#FC6D26' },
-      docker: { name: 'cube', color: '#2496ED' },
-      kubernetes: { name: 'grid', color: '#326CE5' },
-      aws: { name: 'cloud', color: '#FF9900' },
-      azure: { name: 'cloud', color: '#0078D4' },
-      gcp: { name: 'cloud', color: '#4285F4' },
-      heroku: { name: 'cloud', color: '#430098' },
-      digitalocean: { name: 'water', color: '#0080FF' },
-      cloudflare: { name: 'shield', color: '#F38020' },
-      vercel: { name: 'triangle', color: '#000000' },
-      netlify: { name: 'git-network', color: '#00C7B7' },
-      namecheap: { name: 'globe', color: '#DE3723' },
-      godaddy: { name: 'globe', color: '#1BDBDB' },
-      bluehost: { name: 'server', color: '#1F5582' },
-      hostgator: { name: 'server', color: '#FF6600' },
-    };
-
-    // Check if we have a specific icon for this service
-    for (const [key, value] of Object.entries(iconMap)) {
-      if (service.includes(key)) {
-        return (
-          <View style={[styles.serviceIcon, { backgroundColor: 'rgba(255, 255, 255, 0.08)' }]}>
-            <Ionicons name={value.name} size={20} color={value.color} />
-          </View>
-        );
-      }
-    }
-
-    // Default fallback with first letter using minimal colors
-    const firstLetter = serviceName.charAt(0).toUpperCase();
-    const minimalColors = [
-      '#8B949E', '#7C3AED', '#0EA5E9', '#059669', '#D97706', 
-      '#DC2626', '#65A30D', '#EA580C', '#BE185D', '#2563EB'
-    ];
-    const colorIndex = serviceName.length % minimalColors.length;
-    const selectedColor = minimalColors[colorIndex];
-    
-    return (
-      <View style={[styles.serviceIcon, { backgroundColor: 'rgba(255, 255, 255, 0.06)' }]}>
-        <Text style={[styles.serviceIconText, { color: selectedColor }]}>{firstLetter}</Text>
-      </View>
-    );
   };
 
   const onGestureEvent = Animated.event(
@@ -360,7 +232,7 @@ export const PasswordItem: React.FC<PasswordItemProps> = ({
               activeOpacity={0.8}
             >
               {/* Service Icon */}
-              {getServiceIcon(password.service)}
+              <ServiceLogo serviceName={password.service} size={24} style={styles.serviceIconStyle} />
               
               {/* Service Info */}
               <View style={styles.serviceInfo}>
@@ -402,25 +274,17 @@ export const PasswordItem: React.FC<PasswordItemProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    marginHorizontal: 20,
-    marginBottom: 12,
-    borderRadius: 16,
+    marginHorizontal: 24,
+    marginBottom: 8,
+    borderRadius: 12,
     overflow: 'hidden',
     backgroundColor: Colors.surface,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    shadowColor: '#000000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.08,
-    shadowRadius: 12,
-    elevation: 3,
+    borderWidth: 0.5,
+    borderColor: 'rgba(255, 255, 255, 0.08)',
   },
   swipeWrapper: {
     position: 'relative',
-    borderRadius: 16,
+    borderRadius: 12,
     overflow: 'hidden',
   },
   swipeBackground: {
@@ -429,12 +293,12 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    borderRadius: 16,
+    borderRadius: 12,
   },
   swipeContainer: {
     position: 'relative',
-    borderRadius: 16,
-    minHeight: 72,
+    borderRadius: 12,
+    minHeight: 68,
     backgroundColor: Colors.surface,
     zIndex: 2,
   },
@@ -466,7 +330,7 @@ const styles = StyleSheet.create({
   },
   content: {
     backgroundColor: Colors.surface,
-    borderRadius: 16,
+    borderRadius: 12,
     padding: 16,
     zIndex: 2,
     width: '100%',
@@ -475,64 +339,46 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
   },
-  serviceIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: 16,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 16,
-    shadowColor: '#000000',
-    shadowOffset: {
-      width: 0,
-      height: 1,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  serviceIconText: {
-    fontSize: 18,
-    fontWeight: '700',
-    letterSpacing: 0.5,
+  serviceIconStyle: {
+    marginRight: 12,
   },
   serviceInfo: {
     flex: 1,
     paddingRight: 12,
   },
   serviceName: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '600',
     color: Colors.text.primary,
-    marginBottom: 4,
-    letterSpacing: -0.2,
+    marginBottom: 3,
+    letterSpacing: -0.1,
   },
   serviceUrl: {
-    fontSize: 14,
+    fontSize: 13,
     color: Colors.text.secondary,
     marginBottom: 2,
     fontWeight: '400',
   },
   notes: {
-    fontSize: 12,
+    fontSize: 11,
     color: Colors.text.tertiary,
     fontWeight: '400',
     fontStyle: 'italic',
   },
   fingerprintButton: {
-    padding: 10,
-    borderRadius: 12,
-    backgroundColor: Colors.primary + '15',
-    borderWidth: 1,
-    borderColor: Colors.primary + '25',
-    minWidth: 40,
-    minHeight: 40,
+    padding: 8,
+    borderRadius: 10,
+    backgroundColor: 'rgba(255, 255, 255, 0.06)',
+    borderWidth: 0.5,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+    minWidth: 36,
+    minHeight: 36,
     justifyContent: 'center',
     alignItems: 'center',
   },
   actionText: {
     color: '#FFFFFF',
-    fontSize: 11,
+    fontSize: 10,
     fontWeight: '500',
     marginTop: 2,
     textAlign: 'center',

@@ -156,13 +156,13 @@ export const HomeScreen: React.FC = () => {
               <View style={styles.homeHeader}>
                 <View style={styles.headerContent}>
                   <Text style={styles.appTitle}>PassNext</Text>
-                  <Text style={styles.appSubtitle}>Your secure password manager</Text>
+                  <Text style={styles.appSubtitle}>Secure • Simple • Private</Text>
                 </View>
                 <TouchableOpacity 
                   style={styles.userAvatar}
                   onPress={() => setCurrentTab('profile')}
                 >
-                  <Ionicons name="person" size={24} color={Colors.primary} />
+                  <Ionicons name="person-outline" size={20} color={Colors.text.secondary} />
                 </TouchableOpacity>
               </View>
 
@@ -188,10 +188,10 @@ export const HomeScreen: React.FC = () => {
                     {/* Enhanced Search */}
                     <View style={styles.searchSection}>
                       <View style={styles.searchContainer}>
-                        <Ionicons name="search-outline" size={16} color={Colors.text.tertiary} style={styles.searchIcon} />
+                        <Ionicons name="search-outline" size={18} color={Colors.text.tertiary} style={styles.searchIcon} />
                         <TextInput
                           style={styles.searchInput}
-                          placeholder="Search your passwords..."
+                          placeholder="Search passwords..."
                           placeholderTextColor={Colors.text.tertiary}
                           value={searchQuery}
                           onChangeText={setSearchQuery}
@@ -200,43 +200,43 @@ export const HomeScreen: React.FC = () => {
                         />
                         {searchQuery.length > 0 && (
                           <TouchableOpacity onPress={() => setSearchQuery('')} style={styles.clearSearchButton}>
-                            <Ionicons name="close-circle" size={18} color={Colors.text.tertiary} />
+                            <Ionicons name="close-circle" size={16} color={Colors.text.tertiary} />
                           </TouchableOpacity>
                         )}
                       </View>
                     </View>
 
-                    {/* Analytics Button */}
+                    {/* Security Analytics */}
                     {passwords.length > 0 && (
                       <TouchableOpacity 
                         style={styles.analyticsButton}
                         onPress={() => setShowSecurityDashboard(true)}
                       >
                         <View style={styles.analyticsIcon}>
-                          <Ionicons name="analytics" size={20} color={Colors.primary} />
+                          <Ionicons name="shield-checkmark-outline" size={18} color={Colors.text.secondary} />
                         </View>
                         <View style={styles.analyticsContent}>
-                          <Text style={styles.analyticsTitle}>Security Analytics</Text>
-                          <Text style={styles.analyticsSubtitle}>View detailed security insights</Text>
+                          <Text style={styles.analyticsTitle}>Security Insights</Text>
+                          <Text style={styles.analyticsSubtitle}>View password health</Text>
                         </View>
-                        <Ionicons name="chevron-forward" size={20} color={Colors.text.tertiary} />
+                        <Ionicons name="chevron-forward" size={16} color={Colors.text.tertiary} />
                       </TouchableOpacity>
                     )}
 
                     {/* Section Header */}
                     <View style={styles.sectionHeader}>
                       <View style={styles.sectionTitleContainer}>
-                        <Text style={styles.sectionMainTitle}>Your Passwords</Text>
+                        <Text style={styles.sectionMainTitle}>Passwords</Text>
                         <Text style={styles.sectionSubtitle}>
-                          {filteredPasswords.length} {filteredPasswords.length === 1 ? 'password' : 'passwords'}
-                          {searchQuery.length > 0 && ` matching "${searchQuery}"`}
+                          {filteredPasswords.length} {filteredPasswords.length === 1 ? 'item' : 'items'}
+                          {searchQuery.length > 0 && ` for "${searchQuery}"`}
                         </Text>
                       </View>
                       {passwords.length > 0 && (
                         <TouchableOpacity style={styles.sortButton} onPress={handleSortPress}>
-                          <Ionicons name="swap-vertical" size={16} color={Colors.text.secondary} />
+                          <Ionicons name="swap-vertical-outline" size={14} color={Colors.text.tertiary} />
                           <Text style={styles.sortButtonText}>
-                            {sortBy === 'recent' ? 'Recent' : sortBy === 'name' ? 'Name' : 'Date'}
+                            {sortBy === 'recent' ? 'Recent' : sortBy === 'name' ? 'A-Z' : 'Date'}
                           </Text>
                         </TouchableOpacity>
                       )}
@@ -246,23 +246,23 @@ export const HomeScreen: React.FC = () => {
                 ListEmptyComponent={
                   <View style={styles.emptyState}>
                     <View style={styles.emptyStateIcon}>
-                      <Ionicons name="key-outline" size={48} color={Colors.text.tertiary} />
+                      <Ionicons name="key-outline" size={32} color={Colors.text.tertiary} />
                     </View>
                     <Text style={styles.emptyStateTitle}>
-                      {loading ? 'Loading your passwords...' : 
-                       searchQuery.length > 0 ? 'No matching passwords' : 'Your vault is empty'}
+                      {loading ? 'Loading...' : 
+                       searchQuery.length > 0 ? 'No results' : 'No passwords yet'}
                     </Text>
                     <Text style={styles.emptyStateText}>
-                      {loading ? 'Please wait while we fetch your data' : 
-                       searchQuery.length > 0 ? `No passwords match "${searchQuery}"` : 'Add your first password to get started with secure storage'}
+                      {loading ? 'Getting your passwords ready' : 
+                       searchQuery.length > 0 ? `Nothing found for "${searchQuery}"` : 'Start by adding your first password'}
                     </Text>
                     {!loading && searchQuery.length === 0 && (
                       <TouchableOpacity 
                         style={styles.addFirstButton}
                         onPress={() => setShowAddModal(true)}
                       >
-                        <Ionicons name="add" size={20} color={Colors.text.inverse} style={styles.addFirstButtonIcon} />
-                        <Text style={styles.addFirstButtonText}>Add Your First Password</Text>
+                        <Ionicons name="add" size={18} color={Colors.background} style={styles.addFirstButtonIcon} />
+                        <Text style={styles.addFirstButtonText}>Add Password</Text>
                       </TouchableOpacity>
                     )}
                   </View>
@@ -289,7 +289,11 @@ export const HomeScreen: React.FC = () => {
             style={[styles.navItem, currentTab === 'home' && styles.activeNavItem]}
             onPress={() => handleTabPress('home')}
           >
-            <Ionicons name="apps" size={22} color={currentTab === 'home' ? Colors.primary : Colors.text.secondary} />
+            <Ionicons 
+              name={currentTab === 'home' ? "grid" : "grid-outline"} 
+              size={20} 
+              color={currentTab === 'home' ? Colors.primary : Colors.text.tertiary} 
+            />
             <Text style={[styles.navText, currentTab === 'home' && styles.activeNavText]}>Home</Text>
           </TouchableOpacity>
           
@@ -297,7 +301,11 @@ export const HomeScreen: React.FC = () => {
             style={[styles.navItem, currentTab === 'profile' && styles.activeNavItem]}
             onPress={() => handleTabPress('profile')}
           >
-            <Ionicons name="person" size={22} color={currentTab === 'profile' ? Colors.primary : Colors.text.secondary} />
+            <Ionicons 
+              name={currentTab === 'profile' ? "person" : "person-outline"} 
+              size={20} 
+              color={currentTab === 'profile' ? Colors.primary : Colors.text.tertiary} 
+            />
             <Text style={[styles.navText, currentTab === 'profile' && styles.activeNavText]}>Profile</Text>
           </TouchableOpacity>
         </View>
@@ -307,7 +315,7 @@ export const HomeScreen: React.FC = () => {
           style={styles.floatingAddButton}
           onPress={() => setShowAddModal(true)}
         >
-          <Ionicons name="add" size={28} color={Colors.text.inverse} />
+          <Ionicons name="add" size={24} color={Colors.background} />
         </TouchableOpacity>
 
         {/* Modals */}
@@ -356,32 +364,33 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingTop: 40,
-    paddingBottom: 24,
+    paddingHorizontal: 24,
+    paddingTop: 20,
+    paddingBottom: 20,
   },
   headerContent: {
     flex: 1,
   },
   userAvatar: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: Colors.primary + '15',
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: Colors.surface,
     justifyContent: 'center',
     alignItems: 'center',
-    marginLeft: 12,
+    borderWidth: 0.5,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
   },
   appTitle: {
-    fontSize: 28,
-    fontWeight: '500',
+    fontSize: 24,
+    fontWeight: '600',
     color: Colors.text.primary,
-    letterSpacing: -0.5,
+    letterSpacing: -0.3,
   },
   appSubtitle: {
-    fontSize: 14,
-    color: Colors.text.secondary,
-    marginTop: 4,
+    fontSize: 13,
+    color: Colors.text.tertiary,
+    marginTop: 2,
     fontWeight: '400',
   },
   headerStats: {
@@ -405,28 +414,22 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   searchSection: {
-    paddingHorizontal: 20,
-    marginBottom: 16,
-    marginTop: 8,
+    paddingHorizontal: 24,
+    marginBottom: 20,
   },
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: Colors.surface,
-    borderRadius: 16,
+    borderRadius: 12,
     paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderWidth: 1,
-    borderColor: 'transparent',
+    paddingVertical: 14,
+    borderWidth: 0.5,
+    borderColor: 'rgba(255, 255, 255, 0.08)',
     minHeight: 48,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
   },
   searchIcon: {
-    marginRight: 8,
+    marginRight: 12,
   },
   searchInput: {
     flex: 1,
@@ -436,26 +439,24 @@ const styles = StyleSheet.create({
   },
   clearSearchButton: {
     padding: 4,
+    marginLeft: 8,
   },
   analyticsButton: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: Colors.surface,
-    marginHorizontal: 20,
+    marginHorizontal: 24,
     marginBottom: 24,
-    borderRadius: 16,
+    borderRadius: 12,
     padding: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
+    borderWidth: 0.5,
+    borderColor: 'rgba(255, 255, 255, 0.08)',
   },
   analyticsIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: Colors.primary + '15',
+    width: 32,
+    height: 32,
+    borderRadius: 8,
+    backgroundColor: 'rgba(255, 255, 255, 0.06)',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
@@ -464,14 +465,14 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   analyticsTitle: {
-    fontSize: 16,
-    fontWeight: '600',
+    fontSize: 15,
+    fontWeight: '500',
     color: Colors.text.primary,
     marginBottom: 2,
   },
   analyticsSubtitle: {
-    fontSize: 13,
-    color: Colors.text.secondary,
+    fontSize: 12,
+    color: Colors.text.tertiary,
   },
   modalOverlay: {
     position: 'absolute',
@@ -486,34 +487,37 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 20,
+    paddingHorizontal: 24,
     marginBottom: 16,
   },
   sectionTitleContainer: {
     flex: 1,
   },
   sectionMainTitle: {
-    fontSize: 18,
-    fontWeight: '700',
+    fontSize: 16,
+    fontWeight: '600',
     color: Colors.text.primary,
     marginBottom: 2,
   },
   sectionSubtitle: {
-    fontSize: 13,
-    color: Colors.text.secondary,
+    fontSize: 12,
+    color: Colors.text.tertiary,
     fontWeight: '400',
   },
   sortButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
     borderRadius: 8,
-    backgroundColor: Colors.surface,
+    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    borderWidth: 0.5,
+    borderColor: 'rgba(255, 255, 255, 0.08)',
     gap: 4,
   },
   sortButtonText: {
-    fontSize: 12,
-    color: Colors.text.secondary,
+    fontSize: 11,
+    color: Colors.text.tertiary,
     fontWeight: '500',
   },
   passwordList: {
@@ -523,7 +527,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   listContent: {
-    paddingBottom: 100,
+    paddingBottom: 120,
   },
   emptyState: {
     flex: 1,
@@ -533,59 +537,56 @@ const styles = StyleSheet.create({
     paddingHorizontal: 32,
   },
   emptyStateIcon: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: Colors.surface,
+    width: 60,
+    height: 60,
+    borderRadius: 12,
+    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    borderWidth: 0.5,
+    borderColor: 'rgba(255, 255, 255, 0.08)',
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 24,
+    marginBottom: 20,
   },
   emptyStateTitle: {
-    fontSize: 18,
-    fontWeight: '600',
+    fontSize: 16,
+    fontWeight: '500',
     color: Colors.text.primary,
     textAlign: 'center',
     marginBottom: 8,
   },
   emptyStateText: {
-    fontSize: 14,
-    color: Colors.text.secondary,
+    fontSize: 13,
+    color: Colors.text.tertiary,
     textAlign: 'center',
-    marginBottom: 32,
+    marginBottom: 24,
     fontWeight: '400',
-    lineHeight: 20,
+    lineHeight: 18,
   },
   addFirstButton: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: Colors.primary,
-    paddingHorizontal: 24,
-    paddingVertical: 14,
-    borderRadius: 16,
-    minHeight: 48,
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderRadius: 12,
+    minHeight: 44,
     justifyContent: 'center',
-    shadowColor: Colors.primary,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 8,
   },
   addFirstButtonIcon: {
-    marginRight: 8,
+    marginRight: 6,
   },
   addFirstButtonText: {
-    color: Colors.text.inverse,
-    fontSize: 15,
-    fontWeight: '600',
+    color: Colors.background,
+    fontSize: 14,
+    fontWeight: '500',
   },
   bottomNav: {
     flexDirection: 'row',
     backgroundColor: Colors.background,
-    paddingVertical: 16,
-    paddingHorizontal: 20,
-    borderTopWidth: 1,
-    borderTopColor: Colors.divider,
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderTopWidth: 0.5,
+    borderTopColor: 'rgba(255, 255, 255, 0.08)',
     justifyContent: 'space-around',
   },
   navItem: {
@@ -593,40 +594,40 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingVertical: 8,
     paddingHorizontal: 20,
-    borderRadius: 12,
+    borderRadius: 10,
     minWidth: 60,
-    minHeight: 48,
+    minHeight: 44,
   },
   activeNavItem: {
-    backgroundColor: Colors.primary + '10',
+    backgroundColor: 'rgba(255, 255, 255, 0.06)',
   },
   floatingAddButton: {
     position: 'absolute',
-    bottom: 90,
+    bottom: 80,
     right: 24,
-    width: 60,
-    height: 60,
-    borderRadius: 30,
+    width: 52,
+    height: 52,
+    borderRadius: 26,
     backgroundColor: Colors.primary,
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: Colors.shadow,
+    shadowColor: '#000',
     shadowOffset: {
       width: 0,
-      height: 4,
+      height: 2,
     },
-    shadowOpacity: 0.3,
+    shadowOpacity: 0.25,
     shadowRadius: 8,
     elevation: 8,
   },
   navText: {
-    fontSize: 12,
-    color: Colors.text.secondary,
+    fontSize: 11,
+    color: Colors.text.tertiary,
     marginTop: 4,
     fontWeight: '400',
   },
   activeNavText: {
-    fontSize: 12,
+    fontSize: 11,
     color: Colors.primary,
     marginTop: 4,
     fontWeight: '500',
