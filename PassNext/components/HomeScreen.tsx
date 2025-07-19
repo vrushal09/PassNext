@@ -23,6 +23,7 @@ import { CustomAlert } from './CustomAlert';
 import { EditPasswordModal } from './EditPasswordModal';
 import { PasswordItem } from './PasswordItem';
 import { ProfileScreen } from './ProfileScreen';
+import SecurityDashboard from './SecurityDashboard';
 
 export const HomeScreen: React.FC = () => {
   const { user } = useAuth();
@@ -39,6 +40,7 @@ export const HomeScreen: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [currentTab, setCurrentTab] = useState('home');
   const [sortBy, setSortBy] = useState<'name' | 'date' | 'recent'>('recent');
+  const [showSecurityDashboard, setShowSecurityDashboard] = useState(false);
 
   // Load passwords on component mount
   useEffect(() => {
@@ -204,28 +206,21 @@ export const HomeScreen: React.FC = () => {
                       </View>
                     </View>
 
-                    {/* Quick Stats */}
+                    {/* Analytics Button */}
                     {passwords.length > 0 && (
-                      <View style={styles.quickStatsContainer}>
-                        <View style={styles.quickStat}>
-                          <Text style={styles.quickStatValue}>{passwords.length}</Text>
-                          <Text style={styles.quickStatLabel}>Total</Text>
+                      <TouchableOpacity 
+                        style={styles.analyticsButton}
+                        onPress={() => setShowSecurityDashboard(true)}
+                      >
+                        <View style={styles.analyticsIcon}>
+                          <Ionicons name="analytics" size={20} color={Colors.primary} />
                         </View>
-                        <View style={styles.statsDivider} />
-                        <View style={styles.quickStat}>
-                          <Text style={[styles.quickStatValue, { color: Colors.success }]}>
-                            {passwords.length}
-                          </Text>
-                          <Text style={styles.quickStatLabel}>Stored</Text>
+                        <View style={styles.analyticsContent}>
+                          <Text style={styles.analyticsTitle}>Security Analytics</Text>
+                          <Text style={styles.analyticsSubtitle}>View detailed security insights</Text>
                         </View>
-                        <View style={styles.statsDivider} />
-                        <View style={styles.quickStat}>
-                          <Text style={[styles.quickStatValue, { color: Colors.primary }]}>
-                            {passwords.length}
-                          </Text>
-                          <Text style={styles.quickStatLabel}>Active</Text>
-                        </View>
-                      </View>
+                        <Ionicons name="chevron-forward" size={20} color={Colors.text.tertiary} />
+                      </TouchableOpacity>
                     )}
 
                     {/* Section Header */}
@@ -280,6 +275,13 @@ export const HomeScreen: React.FC = () => {
             <ProfileScreen />
           )}
         </View>
+
+        {/* Security Dashboard Modal */}
+        {showSecurityDashboard && (
+          <View style={styles.modalOverlay}>
+            <SecurityDashboard onClose={() => setShowSecurityDashboard(false)} />
+          </View>
+        )}
 
         {/* Bottom Navigation */}
         <View style={styles.bottomNav}>
@@ -435,38 +437,50 @@ const styles = StyleSheet.create({
   clearSearchButton: {
     padding: 4,
   },
-  quickStatsContainer: {
+  analyticsButton: {
     flexDirection: 'row',
+    alignItems: 'center',
     backgroundColor: Colors.surface,
     marginHorizontal: 20,
     marginBottom: 24,
     borderRadius: 16,
-    padding: 20,
-    alignItems: 'center',
-    justifyContent: 'space-around',
+    padding: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 4,
   },
-  quickStat: {
+  analyticsIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: Colors.primary + '15',
+    justifyContent: 'center',
     alignItems: 'center',
+    marginRight: 12,
+  },
+  analyticsContent: {
     flex: 1,
   },
-  quickStatValue: {
-    fontSize: 20,
-    fontWeight: '700',
+  analyticsTitle: {
+    fontSize: 16,
+    fontWeight: '600',
     color: Colors.text.primary,
-    marginBottom: 4,
+    marginBottom: 2,
   },
-  quickStatLabel: {
-    fontSize: 11,
+  analyticsSubtitle: {
+    fontSize: 13,
     color: Colors.text.secondary,
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-    fontWeight: '500',
   },
-  statsDivider: {
-    width: 1,
-    height: 24,
-    backgroundColor: Colors.border,
-    marginHorizontal: 16,
+  modalOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: Colors.background,
+    zIndex: 1000,
   },
   sectionHeader: {
     flexDirection: 'row',
