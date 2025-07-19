@@ -18,14 +18,11 @@ import { useAuth } from '../contexts/AuthContext';
 import { useCustomAlert } from '../hooks/useCustomAlert';
 import { authService } from '../services/authService';
 import { Password, passwordService } from '../services/passwordService';
-import { securityDashboardService, SecurityMetrics } from '../services/securityDashboardService';
 import { AddPasswordModal } from './AddPasswordModal';
 import { CustomAlert } from './CustomAlert';
 import { EditPasswordModal } from './EditPasswordModal';
-import NotificationScreen from './NotificationScreen';
 import { PasswordItem } from './PasswordItem';
 import { ProfileScreen } from './ProfileScreen';
-import SecurityDashboard from './SecurityDashboard';
 
 export const HomeScreen: React.FC = () => {
   const { user } = useAuth();
@@ -41,7 +38,6 @@ export const HomeScreen: React.FC = () => {
   const [selectedPassword, setSelectedPassword] = useState<Password | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [currentTab, setCurrentTab] = useState('home');
-  const [securityMetrics, setSecurityMetrics] = useState<SecurityMetrics | null>(null);
   const [sortBy, setSortBy] = useState<'name' | 'date' | 'recent'>('recent');
 
   // Load passwords on component mount
@@ -88,14 +84,6 @@ export const HomeScreen: React.FC = () => {
     
     if (result.success && result.passwords) {
       setPasswords(result.passwords);
-      
-      // Load security metrics
-      try {
-        const dashboardData = await securityDashboardService.generateSecurityDashboard(result.passwords);
-        setSecurityMetrics(dashboardData.metrics);
-      } catch (error) {
-        console.error('Error loading security metrics:', error);
-      }
     } else {
       showError('Error', result.error || 'Failed to load passwords');
     }
@@ -217,25 +205,25 @@ export const HomeScreen: React.FC = () => {
                     </View>
 
                     {/* Quick Stats */}
-                    {passwords.length > 0 && securityMetrics && (
+                    {passwords.length > 0 && (
                       <View style={styles.quickStatsContainer}>
                         <View style={styles.quickStat}>
-                          <Text style={styles.quickStatValue}>{securityMetrics.totalPasswords}</Text>
+                          <Text style={styles.quickStatValue}>{passwords.length}</Text>
                           <Text style={styles.quickStatLabel}>Total</Text>
                         </View>
                         <View style={styles.statsDivider} />
                         <View style={styles.quickStat}>
                           <Text style={[styles.quickStatValue, { color: Colors.success }]}>
-                            {securityMetrics.totalPasswords - securityMetrics.weakPasswords}
+                            {passwords.length}
                           </Text>
-                          <Text style={styles.quickStatLabel}>Secure</Text>
+                          <Text style={styles.quickStatLabel}>Stored</Text>
                         </View>
                         <View style={styles.statsDivider} />
                         <View style={styles.quickStat}>
-                          <Text style={[styles.quickStatValue, { color: Colors.warning }]}>
-                            {securityMetrics.weakPasswords}
+                          <Text style={[styles.quickStatValue, { color: Colors.primary }]}>
+                            {passwords.length}
                           </Text>
-                          <Text style={styles.quickStatLabel}>Weak</Text>
+                          <Text style={styles.quickStatLabel}>Active</Text>
                         </View>
                       </View>
                     )}
@@ -288,17 +276,6 @@ export const HomeScreen: React.FC = () => {
             </>
           )}
 
-          {currentTab === 'security' && (
-            <SecurityDashboard
-              onEditPassword={handleEditPassword}
-              onDeletePassword={(password) => handleDeletePassword(password.id || '')}
-            />
-          )}
-
-          {currentTab === 'notifications' && (
-            <NotificationScreen />
-          )}
-
           {currentTab === 'profile' && (
             <ProfileScreen />
           )}
@@ -312,22 +289,6 @@ export const HomeScreen: React.FC = () => {
           >
             <Ionicons name="apps" size={22} color={currentTab === 'home' ? Colors.primary : Colors.text.secondary} />
             <Text style={[styles.navText, currentTab === 'home' && styles.activeNavText]}>Home</Text>
-          </TouchableOpacity>
-          
-          <TouchableOpacity 
-            style={[styles.navItem, currentTab === 'notifications' && styles.activeNavItem]}
-            onPress={() => handleTabPress('notifications')}
-          >
-            <Ionicons name="notifications" size={22} color={currentTab === 'notifications' ? Colors.primary : Colors.text.secondary} />
-            <Text style={[styles.navText, currentTab === 'notifications' && styles.activeNavText]}>Notifications</Text>
-          </TouchableOpacity>
-          
-          <TouchableOpacity 
-            style={[styles.navItem, currentTab === 'security' && styles.activeNavItem]}
-            onPress={() => handleTabPress('security')}
-          >
-            <Ionicons name="shield-checkmark" size={22} color={currentTab === 'security' ? Colors.primary : Colors.text.secondary} />
-            <Text style={[styles.navText, currentTab === 'security' && styles.activeNavText]}>Security</Text>
           </TouchableOpacity>
           
           <TouchableOpacity 

@@ -1,31 +1,23 @@
 import { Ionicons } from '@expo/vector-icons';
 import React, { useState } from 'react';
 import {
-    Alert,
-    ScrollView,
-    StyleSheet,
-    Switch,
-    Text,
-    TouchableOpacity,
-    View
+  Alert,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View
 } from 'react-native';
 import Colors from '../constants/Colors';
 import { useAuth } from '../contexts/AuthContext';
 import { useCustomAlert } from '../hooks/useCustomAlert';
 import { biometricAuthService } from '../services/biometricAuthService';
-import { notificationService } from '../services/notificationService';
 import { CustomAlert } from './CustomAlert';
 
 export const ProfileScreen: React.FC = () => {
   const { user, logout } = useAuth();
   const { alertState, hideAlert, showError, showSuccess } = useCustomAlert();
   const [biometricEnabled, setBiometricEnabled] = useState(false);
-  const [notificationPreferences, setNotificationPreferences] = useState({
-    securityAlerts: true,
-    passwordExpiry: true,
-    breachAlerts: true,
-    weakPasswordAlerts: true,
-  });
 
   React.useEffect(() => {
     loadSettings();
@@ -36,10 +28,6 @@ export const ProfileScreen: React.FC = () => {
       // Load biometric settings
       const biometricAvailable = await biometricAuthService.isAvailable();
       setBiometricEnabled(biometricAvailable);
-
-      // Load notification preferences
-      const preferences = await notificationService.getNotificationPreferences();
-      setNotificationPreferences(preferences);
     } catch (error) {
       console.error('Error loading settings:', error);
     }
@@ -60,39 +48,6 @@ export const ProfileScreen: React.FC = () => {
               showSuccess('Success', 'Logged out successfully');
             } catch (error) {
               showError('Error', 'Failed to logout');
-            }
-          }
-        }
-      ]
-    );
-  };
-
-  const handleNotificationToggle = async (key: keyof typeof notificationPreferences, value: boolean) => {
-    try {
-      const newPreferences = { ...notificationPreferences, [key]: value };
-      setNotificationPreferences(newPreferences);
-      await notificationService.setNotificationPreferences(newPreferences);
-      showSuccess('Success', 'Notification preferences updated');
-    } catch (error) {
-      showError('Error', 'Failed to update notification preferences');
-    }
-  };
-
-  const clearNotificationHistory = async () => {
-    Alert.alert(
-      'Clear Notification History',
-      'This will clear all notification history and allow new notifications to be sent.',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        { 
-          text: 'Clear', 
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await notificationService.clearNotificationHistory();
-              showSuccess('Success', 'Notification history cleared');
-            } catch (error) {
-              showError('Error', 'Failed to clear notification history');
             }
           }
         }
@@ -129,80 +84,6 @@ export const ProfileScreen: React.FC = () => {
             <View style={[styles.statusDot, { backgroundColor: biometricEnabled ? Colors.success : Colors.text.tertiary }]} />
           </View>
         </View>
-      </View>
-
-      {/* Notification Settings */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Notifications</Text>
-        
-        <View style={styles.settingItem}>
-          <View style={styles.settingLeft}>
-            <Ionicons name="shield-checkmark" size={20} color={Colors.text.secondary} />
-            <View style={styles.settingText}>
-              <Text style={styles.settingTitle}>Security Alerts</Text>
-              <Text style={styles.settingDescription}>General security notifications</Text>
-            </View>
-          </View>
-          <Switch
-            value={notificationPreferences.securityAlerts}
-            onValueChange={(value) => handleNotificationToggle('securityAlerts', value)}
-            trackColor={{ false: Colors.text.tertiary, true: Colors.primary }}
-            thumbColor={notificationPreferences.securityAlerts ? Colors.primary : Colors.text.secondary}
-          />
-        </View>
-
-        <View style={styles.settingItem}>
-          <View style={styles.settingLeft}>
-            <Ionicons name="warning" size={20} color={Colors.text.secondary} />
-            <View style={styles.settingText}>
-              <Text style={styles.settingTitle}>Breach Alerts</Text>
-              <Text style={styles.settingDescription}>Notify when passwords are compromised</Text>
-            </View>
-          </View>
-          <Switch
-            value={notificationPreferences.breachAlerts}
-            onValueChange={(value) => handleNotificationToggle('breachAlerts', value)}
-            trackColor={{ false: Colors.text.tertiary, true: Colors.primary }}
-            thumbColor={notificationPreferences.breachAlerts ? Colors.primary : Colors.text.secondary}
-          />
-        </View>
-
-        <View style={styles.settingItem}>
-          <View style={styles.settingLeft}>
-            <Ionicons name="key" size={20} color={Colors.text.secondary} />
-            <View style={styles.settingText}>
-              <Text style={styles.settingTitle}>Weak Password Alerts</Text>
-              <Text style={styles.settingDescription}>Notify about weak passwords</Text>
-            </View>
-          </View>
-          <Switch
-            value={notificationPreferences.weakPasswordAlerts}
-            onValueChange={(value) => handleNotificationToggle('weakPasswordAlerts', value)}
-            trackColor={{ false: Colors.text.tertiary, true: Colors.primary }}
-            thumbColor={notificationPreferences.weakPasswordAlerts ? Colors.primary : Colors.text.secondary}
-          />
-        </View>
-
-        <View style={styles.settingItem}>
-          <View style={styles.settingLeft}>
-            <Ionicons name="time" size={20} color={Colors.text.secondary} />
-            <View style={styles.settingText}>
-              <Text style={styles.settingTitle}>Password Expiry</Text>
-              <Text style={styles.settingDescription}>Remind when passwords expire</Text>
-            </View>
-          </View>
-          <Switch
-            value={notificationPreferences.passwordExpiry}
-            onValueChange={(value) => handleNotificationToggle('passwordExpiry', value)}
-            trackColor={{ false: Colors.text.tertiary, true: Colors.primary }}
-            thumbColor={notificationPreferences.passwordExpiry ? Colors.primary : Colors.text.secondary}
-          />
-        </View>
-
-        <TouchableOpacity style={styles.actionButton} onPress={clearNotificationHistory}>
-          <Ionicons name="trash" size={18} color={Colors.text.secondary} />
-          <Text style={styles.actionButtonText}>Clear Notification History</Text>
-        </TouchableOpacity>
       </View>
 
       {/* Account Actions */}
