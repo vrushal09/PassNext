@@ -1,6 +1,6 @@
 # ⚡ PassNext
 
-![Banner](/assets/images/Branding.png)
+![Banner](PassNext/assets/images/Branding.png)
 
 Welcome to **PassNext** – the password manager that takes your security (and your bad password habits) seriously, so you don’t have to! 🔐
 
@@ -14,7 +14,7 @@ PassNext is a modern, open-source password manager built with Expo, React Native
 Because we encrypt everything. Seriously. Don’t believe us? Here’s a real screenshot of our encrypted database:
 
 <!-- Actual encrypted DB screenshot below! -->
-![Encrypted DB Example](/assets/images/DB.png)
+![Encrypted DB Example](PassNext/assets/images/DB.png)
 
 See? Even we can’t read your passwords. (And if you can, please let us know. We’ll panic 😱 together.)
 
