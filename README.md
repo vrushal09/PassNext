@@ -12,6 +12,18 @@ So I turned it into something open-source and useful instead.
 If you’re into security, React Native, or just want to contribute to something cool — **you’re welcome here**.
 
 ---
+
+⚠️ Setup Notice
+Before running the project, make sure to replace all XXXXXXXXXXXX values in the following files:
+
+🔧 app.json: Replace projectId
+
+🔥 src/config/firebase.ts: Replace Firebase config (apiKey, projectId, etc.)
+
+🧂 src/services/encryptionService.ts: Replace salt value for encryption
+
+These are placeholders from my original private setup. You’ll need your own Firebase project + salt to make things work.
+
 ## Features - (Supposed to Be Implemented)
 
 - 🔒 **Biometric Authentication**: Use your face or fingerprint to unlock your vault. (Sorry, no retina scans. Yet.)
