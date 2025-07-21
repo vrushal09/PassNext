@@ -17,14 +17,14 @@ try {
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
-  apiKey: "AIzaSyAUad-Vb1dqSE9lKA1QzL75euNqjr8i8Po",
-  authDomain: "passnest-2c9e6.firebaseapp.com",
-  databaseURL: "https://passnest-2c9e6-default-rtdb.firebaseio.com",
-  projectId: "passnest-2c9e6",
-  storageBucket: "passnest-2c9e6.firebasestorage.app",
-  messagingSenderId: "718983596210",
-  appId: "1:718983596210:web:094672c6338aeffa5961ab",
-  measurementId: "G-0C71Q56ZHS"
+  apiKey: "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
+  authDomain: "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
+  databaseURL: "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
+  projectId: "XXXXXXXXXXXXXXX",
+  storageBucket: "XXXXXXXXXXXXXXXXXXXXXX",
+  messagingSenderId: "XXXXXXXXXXXXXXXXXXXX",
+  appId: "XXXXXXXXXXXXXXXXXXXXXXXXXXX",
+  measurementId: "XXXXXXXXXXXXXXXXX"
 };
 
 // Initialize Firebase

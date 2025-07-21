@@ -18,10 +18,10 @@ export class EncryptionService {
    */
   private generateUserKey(userId: string): string {
     // Using a simpler approach that works reliably in React Native
-    const salt = 'PassNext-Salt-2025-' + userId.substring(0, 8);
+    const salt = 'XXXXXXXXXXXXXX' + userId.substring(0, 8);
     
     // Use a simpler key derivation that doesn't rely on native crypto
-    const combinedString = userId + salt + 'PassNext-Key-Material';
+    const combinedString = userId + salt + 'XXXXXXXXXXXXXXXX';
     const hash = CryptoJS.SHA256(combinedString);
     
     // Create a 256-bit key from the hash
