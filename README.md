@@ -4,21 +4,15 @@
 
 Welcome to **PassNext** – the password manager that takes your security (and your bad password habits) seriously, so you don’t have to! 🔐
 
-## What is this?
+## 😅 What is this?
 
-PassNext is a modern, open-source password manager built with Expo, React Native, and Firebase. It’s designed to keep your secrets safe, your passwords strong, and your life a little less hackable. And yes, it’s actually fun to use!
+PassNext was supposed to be my first app launch… but I kinda **messed it up** (badly).  
+So I turned it into something open-source and useful instead.
 
-## Why should I trust you?
+If you’re into security, React Native, or just want to contribute to something cool — **you’re welcome here**.
 
-
-Because we encrypt everything. Seriously. Don’t believe us? Here’s a real screenshot of our encrypted database:
-
-<!-- Actual encrypted DB screenshot below! -->
-![Encrypted DB Example](PassNext/assets/images/DB.png)
-
-See? Even we can’t read your passwords. (And if you can, please let us know. We’ll panic 😱 together.)
-
-## Features
+---
+## Features - (Supposed to Be Implemented)
 
 - 🔒 **Biometric Authentication**: Use your face or fingerprint to unlock your vault. (Sorry, no retina scans. Yet.)
 - 🛡️ **Password Strength Meter**: Tells you if your password is strong, weak, or “password123”.
@@ -55,7 +49,7 @@ See? Even we can’t read your passwords. (And if you can, please let us know. W
 
 ## Contributing
 
-Pull requests are welcome! If you find a bug or have a feature idea, open an issue or PR. If you find a security issue, please don’t open a PR – email us instead so we can fix it before the bad guys do.
+Pull requests are welcome! If you find a bug or have a feature idea, open an issue or PR.
 
 ## License
 
@@ -63,4 +57,4 @@ MIT. Use it, fork it, break it, fix it. Just don’t use “password” as your 
 
 ---
 
-Made with ❤️, ☕, and a lot of random passwords.
+Made with ❤️, ☕, and a lot of Stress.
